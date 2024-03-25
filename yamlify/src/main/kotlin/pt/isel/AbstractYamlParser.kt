@@ -2,6 +2,9 @@ package pt.isel
 
 import java.io.Reader
 import kotlin.reflect.KClass
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberExtensionProperties
+import kotlin.reflect.full.memberProperties
 
 abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlParser<T> {
     /**
@@ -16,11 +19,24 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
 
 
     final override fun parseObject(yaml: Reader): T {
-        TODO("Not yet implemented")
+        val map = yaml.readLines().mapNotNull {
+            if (it.isBlank()) {
+                return@mapNotNull null
+            }
+            val (key, value) = it.split(":")
+            if (it.contains(":")) {
+                key.trim() to value.trim()
+            } else {
+                null
+            }
+        }.toMap()
+        return newInstance(map)
     }
 
     final override fun parseList(yaml: Reader): List<T> {
         TODO("Not yet implemented")
     }
+
+
 
 }
