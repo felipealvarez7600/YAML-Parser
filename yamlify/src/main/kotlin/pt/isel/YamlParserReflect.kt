@@ -1,12 +1,13 @@
 package pt.isel
 
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
 
 /**
  * A YamlParser that uses reflection to parse objects.
  */
-class YamlParserReflect<T : Any>(type: KClass<T>) : AbstractYamlParser<T>(type) {
+class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlParser<T>(type) {
     companion object {
         /**
          *Internal cache of YamlParserReflect instances.
@@ -29,29 +30,34 @@ class YamlParserReflect<T : Any>(type: KClass<T>) : AbstractYamlParser<T>(type) 
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
     override fun newInstance(args: Map<String, Any>): T {
-        // Get the primary constructor of the current class (YamlParserReflect)
-        val constructor = this::class.primaryConstructor ?: error("Primary constructor not found")
-        val params = constructor.parameters
-
-        // Use reflection to get the actual type parameter (T) of the class
-        val typeParameter = this::class.supertypes.find { it.classifier == AbstractYamlParser::class }!!.arguments[0].type
-
-        // Cast the type parameter to KClass<T>
-        val kClass = typeParameter.asReified<KClass<T>>()
-
-        val argsArray = params.map { param ->
-            args[param.name] ?: error("Missing parameter ${param.name}")
-        }.toTypedArray()
-
-        // Use reflection to get the primary constructor of the actual type (T)
-        val actualConstructor = kClass.primaryConstructor ?: error("Primary constructor not found for $kClass")
-
-        // Call the constructor of the actual type with the arguments
-        return actualConstructor.call(*argsArray) as T
-    }
-
-    private fun castArgValue(value: Any, targetType: KClass<*>): Any {
-        return targetType.javaObjectType.cast(value)
+        val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
+        val parametersToPass = constructor.parameters.filter { parameter ->
+            args.containsKey(parameter.name) || !parameter.isOptional
+        }
+        // Associate only the parameters that are present in the args map or are not optional
+        val parameters = parametersToPass.associateWith { parameter ->
+            val argValue = args[parameter.name] ?: throw IllegalArgumentException("Missing parameter ${parameter.name}")
+            if (argValue is Map<*, *>) {
+                // If the value is a map, recursively call newInstance
+                yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
+            } else if(argValue is List<*>){
+                // If the value is a list, recursively call newInstance for each element
+                convertToType(argValue.map { element ->
+                    if (element is Map<*, *>) {
+                        yamlParser(parameter.type.arguments.first().type!!.classifier as KClass<*>).newInstance(element as Map<String, Any>)
+                    } else {
+                        element
+                    }
+                },
+                    parameter.type.classifier as KClass<*>
+                )
+            } else if (argValue::class == parameter.type.classifier) {
+                argValue
+            } else {
+                convertToType(argValue, parameter.type.classifier as KClass<*>)
+            }
+        }
+        return constructor.callBy(parameters)
     }
 }
 
