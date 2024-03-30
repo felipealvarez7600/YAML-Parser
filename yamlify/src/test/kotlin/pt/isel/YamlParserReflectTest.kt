@@ -188,6 +188,114 @@ class YamlParserReflectTest {
         assertFalse { grades2.hasNext() }
         assertFalse { seq.hasNext() }
     }
+
+    @Test fun parseSequenceOfStudentsWithAddressesAndGradesWithAnnotation() {
+        val seq = YamlParserReflect.yamlParser(Student::class)
+            .parseList(yamlSequenceOfStudentsWithAnnotation.reader())
+            .iterator()
+        assertStudentsInSequence(seq)
+    }
+    @Test fun parseClassroomWithAnnotation() {
+        val yaml = """
+          id: i45
+          students: $yamlSequenceOfStudentsWithAnnotation
+        """.trimIndent()
+        val cr = YamlParserReflect.yamlParser(Classroom::class)
+            .parseObject(yaml.reader())
+        assertEquals("i45", cr.id)
+        assertStudentsInSequence(cr.students.iterator())
+    }
+
+    @Test fun parseStudentWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                city of birth: Oleiros"""
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+    }
+    @Test fun parseStudentWithAddressWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                address:
+                  street: Rua Rosa
+                  nr: 78
+                  city: Lisbon
+                city of birth: Oleiros"""
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals("Rua Rosa", st.address?.street)
+        assertEquals(78, st.address?.nr)
+        assertEquals("Lisbon", st.address?.city)
+    }
+
+    @Test fun parseSequenceOfStudentsWithAnnotation(){
+        val yaml = """
+            -
+              name: Maria Candida
+              nr: 873435
+              from: Oleiros
+            - 
+              name: Jose Carioca
+              nr: 1214398
+              city of birth: Tamega
+        """
+        val seq = YamlParserReflect.yamlParser(Student::class)
+            .parseList(yaml.reader())
+            .iterator()
+        val st1 = seq.next()
+        assertEquals("Maria Candida", st1.name)
+        assertEquals(873435, st1.nr)
+        assertEquals("Oleiros", st1.from)
+        val st2 = seq.next()
+        assertEquals("Jose Carioca", st2.name)
+        assertEquals(1214398, st2.nr)
+        assertEquals("Tamega", st2.from)
+        assertFalse { seq.hasNext() }
+    }
+    @Test fun parseSequenceOfStudentsWithAddressesWithAnnotation() {
+        val yaml = """
+            -
+              name: Maria Candida
+              nr: 873435
+              address:
+                street: Rua Rosa
+                nr: 78
+                city: Lisbon
+              city of birth: Oleiros
+            - 
+              name: Jose Carioca
+              nr: 1214398
+              address:
+                street: Rua Azul
+                nr: 12
+                city: Porto
+              city of birth: Tamega
+        """
+        val seq = YamlParserReflect.yamlParser(Student::class)
+            .parseList(yaml.reader())
+            .iterator()
+        val st1 = seq.next()
+        assertEquals("Maria Candida", st1.name)
+        assertEquals(873435, st1.nr)
+        assertEquals("Oleiros", st1.from)
+        assertEquals("Rua Rosa", st1.address?.street)
+        assertEquals(78, st1.address?.nr)
+        assertEquals("Lisbon", st1.address?.city)
+        val st2 = seq.next()
+        assertEquals("Jose Carioca", st2.name)
+        assertEquals(1214398, st2.nr)
+        assertEquals("Tamega", st2.from)
+        assertEquals("Rua Azul", st2.address?.street)
+        assertEquals(12, st2.address?.nr)
+        assertEquals("Porto", st2.address?.city)
+        assertFalse { seq.hasNext() }
+    }
 }
 
 const val yamlSequenceOfStudents = """
@@ -217,6 +325,42 @@ const val yamlSequenceOfStudents = """
                 nr: 12
                 city: Porto
               from: Tamega
+              grades:
+                -
+                  subject: TDS
+                  classification: 20
+                - 
+                  subject: LAE
+                  classification: 18
+        """
+
+const val yamlSequenceOfStudentsWithAnnotation = """
+            -
+              name: Maria Candida
+              nr: 873435
+              address:
+                street: Rua Rosa
+                nr: 78
+                city: Lisbon
+              city of birth: Oleiros
+              grades:
+                - 
+                  subject: LAE
+                  classification: 18
+                -
+                  subject: PDM
+                  classification: 15
+                -
+                  subject: PC
+                  classification: 19
+            - 
+              name: Jose Carioca
+              nr: 1214398
+              address:
+                street: Rua Azul
+                nr: 12
+                city: Porto
+              city of birth: Tamega
               grades:
                 -
                   subject: TDS
