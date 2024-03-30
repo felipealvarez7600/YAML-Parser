@@ -31,6 +31,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      */
     override fun newInstance(args: Map<String, Any>): T {
         val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
+        // Filter the parameters that are present in the args map or are not optional
         val parametersToPass = constructor.parameters.filter { parameter ->
             args.containsKey(parameter.name) || !parameter.isOptional
         }
@@ -52,11 +53,14 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     parameter.type.classifier as KClass<*>
                 )
             } else if (argValue::class == parameter.type.classifier) {
+                // i the value is already in the corresponding type just return it
                 argValue
             } else {
+                // Convert the value to the corresponding type
                 convertToType(argValue, parameter.type.classifier as KClass<*>)
             }
         }
+        // Call the constructor with the parameters
         return constructor.callBy(parameters)
     }
 }
