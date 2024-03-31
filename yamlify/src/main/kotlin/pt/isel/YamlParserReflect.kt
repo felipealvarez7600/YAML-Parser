@@ -1,7 +1,10 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
+import java.time.LocalDate
+import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
@@ -37,37 +40,42 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
         }
         // Associate only the parameters that are present in the args map or are not optional
-        val parameters = parametersToPass.associateWith { parameter ->
-            val argValue = args[parameter.name] ?: run {
-                val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
-                val argKey = yamlArgAnnotation?.paramName ?: parameter.name
-                args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
-            }
-
-            when (val classifier = parameter.type.classifier) {
-                is KClass<*> -> {
-                    if (argValue is Map<*, *>) {
-                        yamlParser(classifier).newInstance(argValue as Map<String, Any>)
-                    } else if (argValue is List<*>) {
-                        val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
-                        val convertedList = argValue.map { element ->
-                            if (element is Map<*, *>) {
-                                yamlParser(listArgType).newInstance(element as Map<String, Any>)
-                            } else {
-                                element
-                            }
-                        }
-                        convertToType(convertedList, classifier)
-                    } else {
-                        convertToType(argValue, classifier)
-                    }
+        val parameters = constructor.parameters.associateWith { parameter ->
+            val argValue = args[parameter.name] ?: throw IllegalArgumentException("Missing parameter ${parameter.name}")
+            parameter.findAnnotation<YamlConvert>()?.let { annotation ->
+                val converterClass = annotation.converter
+                val converterInstance = converterClass.objectInstance as? YamlConverter<*>
+                    ?: converterClass.createInstance()
+                converterInstance.convert(argValue.toString())
+            } ?: run {
+                // Existing conversion logic
+                when (val classifier = parameter.type.classifier) {
+                    is KClass<*> -> handleComplexTypeConversion(argValue, classifier)
+                    else -> argValue
                 }
-                else -> argValue // For primitive types
             }
         }
         // Call the constructor with the parameters
         return constructor.callBy(parameters)
     }
+
+    private fun handleComplexTypeConversion(argValue: Any, classifier: KClass<*>): Any {
+        return when (classifier) {
+            LocalDate::class -> LocalDate.parse(argValue.toString())
+            UUID::class -> UUID.fromString(argValue.toString())
+            List::class, Set::class -> {
+                argValue
+            }
+            Map::class -> {
+                argValue
+            }
+            Enum::class -> {
+                classifier.java.enumConstants.first { it.toString() == argValue.toString() }
+            }
+            else -> throw IllegalArgumentException("Unsupported type: $classifier")
+        }
+    }
+
 
 }
 
