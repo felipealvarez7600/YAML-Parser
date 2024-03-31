@@ -114,10 +114,14 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
     fun convertToType(argValue: Any, type: KClass<*>): Any {
         return when {
             type == String::class -> argValue
+            type == Boolean::class -> argValue.toString().toBoolean()
+            type == Short::class -> argValue.toString().toShort()
             type == Int::class -> argValue.toString().toInt()
             type == Long::class -> argValue.toString().toLong()
             type == Double::class -> argValue.toString().toDouble()
             type == Float::class -> argValue.toString().toFloat()
+            type == Char::class -> argValue.toString().first()
+            type == Byte::class -> argValue.toString().toByte()
             type == List::class -> argValue as List<*>
             type == Sequence::class && argValue is Iterable<*> -> argValue.asSequence()
             else -> throw IllegalArgumentException("Unsupported type $type")

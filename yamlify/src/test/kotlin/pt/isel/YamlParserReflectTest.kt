@@ -239,7 +239,7 @@ class YamlParserReflectTest {
             -
               name: Maria Candida
               nr: 873435
-              from: Oleiros
+              city of birth: Oleiros
             - 
               name: Jose Carioca
               nr: 1214398

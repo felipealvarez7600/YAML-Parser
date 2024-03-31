@@ -42,23 +42,28 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         }
         // Associate only the parameters that are present in the args map or are not optional
         val parameters = parametersToPass.associateWith { parameter ->
-            val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
-            val argKey = yamlArgAnnotation?.paramName ?: parameter.name
-            val argValue = args[argKey.toString()] ?: throw IllegalArgumentException("Missing parameter $argKey")
+            val argValue : Any = (if (args[parameter.name] != null) {
+                // If the parameter is present in the args map, use it
+                args[parameter.name]
+            } else {
+                // If the parameter is not present in the args map, check if it has the YamlArg annotation
+                val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
+                val argKey = yamlArgAnnotation?.paramName ?: parameter.name
+                args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
+            }) as Any
             if (argValue is Map<*, *>) {
                 // If the value is a map, recursively call newInstance
                 yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
             } else if(argValue is List<*>){
                 // If the value is a list, recursively call newInstance for each element
-                convertToType(argValue.map { element ->
+                val parsedValue = argValue.map { element ->
                     if (element is Map<*, *>) {
                         yamlParser(parameter.type.arguments.first().type!!.classifier as KClass<*>).newInstance(element as Map<String, Any>)
                     } else {
                         element
                     }
-                },
-                    parameter.type.classifier as KClass<*>
-                )
+                }
+                convertToType(parsedValue, parameter.type.classifier as KClass<*>)
             } else if (argValue::class == parameter.type.classifier) {
                 // if the value is already in the corresponding type just return it
                 argValue
