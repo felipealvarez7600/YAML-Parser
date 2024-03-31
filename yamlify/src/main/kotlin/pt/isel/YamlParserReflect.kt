@@ -1,10 +1,8 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
-import kotlin.math.log
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -36,46 +34,40 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
         // Filter the parameters that are present in the args map or are not optional
         val parametersToPass = constructor.parameters.filter { parameter ->
-            // Check if the parameter has the YamlArg annotation
-            val hasYamlArgAnnotation = parameter.findAnnotation<YamlArg>() != null
-            args.containsKey(parameter.name) || !parameter.isOptional || hasYamlArgAnnotation
+            args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
         }
         // Associate only the parameters that are present in the args map or are not optional
         val parameters = parametersToPass.associateWith { parameter ->
-            val argValue : Any = (if (args[parameter.name] != null) {
-                // If the parameter is present in the args map, use it
-                args[parameter.name]
-            } else {
-                // If the parameter is not present in the args map, check if it has the YamlArg annotation
+            val argValue = args[parameter.name] ?: run {
                 val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
                 val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                 args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
-            }) as Any
-            if (argValue is Map<*, *>) {
-                // If the value is a map, recursively call newInstance
-                yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
-            } else if(argValue is List<*>){
-                // If the value is a list, recursively call newInstance for each element
-                val parsedValue = argValue.map { element ->
-                    if (element is Map<*, *>) {
-                        yamlParser(parameter.type.arguments.first().type!!.classifier as KClass<*>).newInstance(element as Map<String, Any>)
+            }
+
+            when (val classifier = parameter.type.classifier) {
+                is KClass<*> -> {
+                    if (argValue is Map<*, *>) {
+                        yamlParser(classifier).newInstance(argValue as Map<String, Any>)
+                    } else if (argValue is List<*>) {
+                        val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
+                        val convertedList = argValue.map { element ->
+                            if (element is Map<*, *>) {
+                                yamlParser(listArgType).newInstance(element as Map<String, Any>)
+                            } else {
+                                element
+                            }
+                        }
+                        convertToType(convertedList, classifier)
                     } else {
-                        element
+                        convertToType(argValue, classifier)
                     }
                 }
-                convertToType(parsedValue, parameter.type.classifier as KClass<*>)
-            } else if (argValue::class == parameter.type.classifier) {
-                // if the value is already in the corresponding type just return it
-                argValue
-            } else {
-                // Convert the value to the corresponding type
-                convertToType(argValue, parameter.type.classifier as KClass<*>)
+                else -> argValue // For primitive types
             }
         }
         // Call the constructor with the parameters
         return constructor.callBy(parameters)
     }
 
-    // private fun
 }
 
