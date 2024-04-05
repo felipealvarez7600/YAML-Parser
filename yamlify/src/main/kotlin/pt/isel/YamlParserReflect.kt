@@ -50,7 +50,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
         }
         // Associate only the parameters that are present in the args map or are not optional
-        val parameters = constructor.parameters.associateWith { parameter ->
+        val parameters = parametersToPass.associateWith { parameter ->
             val argValue = args[parameter.name] ?: throw IllegalArgumentException("Missing parameter ${parameter.name}")
             parameter.findAnnotation<YamlConvert>()?.let { annotation ->
                 val converterClass = annotation.converter
@@ -60,7 +60,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             } ?: run {
                 // Existing conversion logic
                 when (val classifier = parameter.type.classifier) {
-                    is KClass<*> -> handleComplexTypeConversion(argValue, classifier)
+                    is KClass<*> -> convertToType(argValue, classifier)
                     else -> argValue
                 }
             }
@@ -68,24 +68,5 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         // Call the constructor with the parameters
         return constructor.callBy(parameters)
     }
-
-    private fun handleComplexTypeConversion(argValue: Any, classifier: KClass<*>): Any {
-        return when (classifier) {
-            LocalDate::class -> LocalDate.parse(argValue.toString())
-            UUID::class -> UUID.fromString(argValue.toString())
-            List::class, Set::class -> {
-                argValue
-            }
-            Map::class -> {
-                argValue
-            }
-            Enum::class -> {
-                classifier.java.enumConstants.first { it.toString() == argValue.toString() }
-            }
-            else -> throw IllegalArgumentException("Unsupported type: $classifier")
-        }
-    }
-
-
 }
 
