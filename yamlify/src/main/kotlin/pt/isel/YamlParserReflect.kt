@@ -1,9 +1,12 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
+import pt.isel.annotations.YamlConvert
 import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
@@ -12,6 +15,14 @@ import kotlin.reflect.full.primaryConstructor
  * A YamlParser that uses reflection to parse objects.
  */
 class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlParser<T>(type) {
+    val constructor: KFunction<T>
+    val parametersList: List<KParameter>
+
+    init {
+        constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
+        // Filter the parameters that are present in the args map or are not optional
+        parametersList = constructor.parameters
+    }
     companion object {
         /**
          *Internal cache of YamlParserReflect instances.
@@ -34,9 +45,8 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
     override fun newInstance(args: Map<String, Any>): T {
-        val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
         // Filter the parameters that are present in the args map or are not optional
-        val parametersToPass = constructor.parameters.filter { parameter ->
+        val parametersToPass = parametersList.filter { parameter ->
             args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
         }
         // Associate only the parameters that are present in the args map or are not optional

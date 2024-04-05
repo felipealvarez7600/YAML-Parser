@@ -341,6 +341,7 @@ const val yamlSequenceOfStudentsWithAnnotation = """
               address:
                 street: Rua Rosa
                 nr: 78
+                floor: r/c
                 city: Lisbon
               city of birth: Oleiros
               grades:
