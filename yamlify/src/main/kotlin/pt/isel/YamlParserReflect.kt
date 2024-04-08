@@ -1,19 +1,22 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
+import pt.isel.annotations.YamlCustomParser
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
+annotation class YamlConvert(val parser: KClass<out YamlCustomParser<*>>)
 /**
  * A YamlParser that uses reflection to parse objects.
  */
 class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlParser<T>(type) {
     companion object {
         /**
-         *Internal cache of YamlParserReflect instances.
+         * Internal cache of YamlParserReflect instances.
          */
         private val yamlParsers: MutableMap<KClass<*>, YamlParserReflect<*>> = mutableMapOf()
+
         /**
          * Creates a YamlParser for the given type using reflection if it does not already exist.
          * Keep it in an internal cache of YamlParserReflect instances.
@@ -22,10 +25,12 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             return yamlParsers.getOrPut(type) { YamlParserReflect(type) } as YamlParserReflect<T>
         }
     }
+
     /**
      * Used to get a parser for other Type using the same parsing approach.
      */
     override fun <T : Any> yamlParser(type: KClass<T>) = YamlParserReflect.yamlParser(type)
+
     /**
      * Creates a new instance of T through the first constructor
      * that has all the mandatory parameters in the map and optional parameters for the rest.
@@ -43,11 +48,16 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                 args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
             }
-
-            when (val classifier = parameter.type.classifier) {
-                is KClass<*> -> {
+                when {
+                    parameter.findAnnotation<YamlConvert>() != null -> {
+                        val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
+                        val customParserInstance = customParserClass.objectInstance
+                            ?: customParserClass as YamlCustomParser<*>
+                        customParserInstance.parse(argValue.toString())
+                    }
+                parameter.type.classifier is KClass<*> -> {
                     if (argValue is Map<*, *>) {
-                        yamlParser(classifier).newInstance(argValue as Map<String, Any>)
+                        yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
                     } else if (argValue is List<*>) {
                         val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
                         val convertedList = argValue.map { element ->
@@ -57,17 +67,15 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                                 element
                             }
                         }
-                        convertToType(convertedList, classifier)
+                        convertToType(convertedList, parameter.type.classifier as KClass<*>)
                     } else {
-                        convertToType(argValue, classifier)
+                        convertToType(argValue, parameter.type.classifier as KClass<*>)
                     }
                 }
-                else -> argValue // For primitive types
+                else -> argValue
             }
         }
-        // Call the constructor with the parameters
         return constructor.callBy(parameters)
     }
-
 }
 
