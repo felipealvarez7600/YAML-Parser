@@ -1,12 +1,11 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
-import pt.isel.annotations.YamlCustomParser
+import pt.isel.annotations.YamlConvert
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
-annotation class YamlConvert(val parser: KClass<out YamlCustomParser<*>>)
 /**
  * A YamlParser that uses reflection to parse objects.
  */
