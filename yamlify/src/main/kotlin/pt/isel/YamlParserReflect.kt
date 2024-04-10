@@ -2,6 +2,7 @@ package pt.isel
 
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
+import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
@@ -47,13 +48,18 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                 args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
             }
-                when {
-                    parameter.findAnnotation<YamlConvert>() != null -> {
-                        val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
-                        val customParserInstance = customParserClass.objectInstance
-                            ?: customParserClass as YamlCustomParser<*>
-                        customParserInstance.parse(argValue.toString())
+            when {
+                parameter.findAnnotation<YamlConvert>() != null -> {
+                    val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
+                    val customParserInstance = customParserClass.objectInstance
+                        ?: customParserClass.java.getDeclaredConstructor().newInstance()
+                    if (argValue is Map<*, *>) {
+                        val convertedValue = customParserInstance.convert(argValue.toString())
+                        convertedValue
+                    } else {
+                        customParserInstance.convert(argValue.toString())
                     }
+                }
                 parameter.type.classifier is KClass<*> -> {
                     if (argValue is Map<*, *>) {
                         yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
@@ -76,5 +82,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         }
         return constructor.callBy(parameters)
     }
+
+
 }
 
