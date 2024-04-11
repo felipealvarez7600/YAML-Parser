@@ -1,7 +1,7 @@
 package pt.isel.annotations
 
-import pt.isel.YamlConverter
+import pt.isel.YamlDate
 import kotlin.reflect.KClass
 
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
-annotation class YamlConvert(val converter: KClass<out YamlConverter<*>>)
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class YamlConvert(val parser: KClass<YamlDate>)

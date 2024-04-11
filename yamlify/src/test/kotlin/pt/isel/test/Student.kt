@@ -13,5 +13,5 @@ class Student @JvmOverloads constructor (
     val address: Address? = null,
     val grades: List<Grade> = emptyList(),
     @YamlConvert(YamlDate::class)
-    val birth: LocalDate
+    val birth: LocalDate? = null,
 )

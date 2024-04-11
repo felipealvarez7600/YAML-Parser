@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
+
 class YamlParserReflectTest {
 
     @Test fun parseStudentWithMissingProperties() {
@@ -296,7 +297,31 @@ class YamlParserReflectTest {
         assertEquals("Porto", st2.address?.city)
         assertFalse { seq.hasNext() }
     }
+
+    @Test
+    fun parseBirthWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                birth:
+                    year: 2004
+                    month: 05
+                    day: 26
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(2004, st.birth?.year)
+        assertEquals(5, st.birth?.month?.value)
+        assertEquals(26, st.birth?.dayOfMonth)
+    }
 }
+
+
+
+
 
 const val yamlSequenceOfStudents = """
             -
