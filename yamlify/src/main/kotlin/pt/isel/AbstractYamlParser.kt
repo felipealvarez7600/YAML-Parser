@@ -74,8 +74,8 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
     override fun parseList(yaml: Reader): List<T> {
         val yamlLinesList = yaml.readLines().toMutableList()
         val finalList = iterateOverList(yamlLinesList)
-        // If its a map then call the newInstance function to create the object and if not just return the value as T.
-        return finalList.map { if(it is Map<*, *>) newInstance(it as Map<String, Any>) else it as T}
+        // If it's a map then call the newInstance function to create the object and if not just return the value as T.
+        return finalList.map { newInstance(it as Map<String, Any>) }
     }
 
     /**
@@ -101,31 +101,10 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                     // Call the iterateOverObject function to get the object and add it to the list
                     val obj = iterateOverObject(newObject, -1)
                     finalList.add(obj)
-                } else finalList.add(convertToType(value, type))
+                } else finalList.add(mapOf("#" to value))
             }
 
         }
         return finalList
     }
-
-    /**
-     * Function that converts the value to the type of the parameter.
-     */
-    fun convertToType(argValue: Any, type: KClass<*>): Any {
-        return when {
-            type == String::class -> argValue
-            type == Boolean::class -> argValue.toString().toBoolean()
-            type == Short::class -> argValue.toString().toShort()
-            type == Int::class -> argValue.toString().toInt()
-            type == Long::class -> argValue.toString().toLong()
-            type == Double::class -> argValue.toString().toDouble()
-            type == Float::class -> argValue.toString().toFloat()
-            type == Char::class -> argValue.toString().first()
-            type == Byte::class -> argValue.toString().toByte()
-            type == List::class -> argValue as List<*>
-            type == Sequence::class && argValue is Iterable<*> -> argValue.asSequence()
-            else -> throw IllegalArgumentException("Unsupported type $type")
-        }
-    }
-
 }
