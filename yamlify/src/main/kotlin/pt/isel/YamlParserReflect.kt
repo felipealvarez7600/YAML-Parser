@@ -20,7 +20,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 
     //Classes that have maps of parameters
     val constructor: KFunction<T>
-    val parametersBuilders: List<ParametersBuilder>
+    val parametersBuilders: Map<String, ParametersBuilder>
     init {
         constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
         parametersBuilders = constructor.parameters.map { p -> ParametersBuilder(p) }
@@ -102,7 +102,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 
     /** Why did the teacher told me to have a map of key String and value KPArameter (Map<String, KParameter)? */
     class ParametersBuilder(param: KParameter) {
-        private val parameterBuild: (Map<String, KParameter>) -> Any // Map<String, Any> -> T in YamlParserReflect
+        private val parameterBuild: (Map.Entry<String, KParameter>) -> Any // Map<String, Any> -> T in YamlParserReflect
 
         init {
 //            val autoRouteAnnotations = param.annotations
