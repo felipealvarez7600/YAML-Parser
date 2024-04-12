@@ -2,7 +2,6 @@ package pt.isel
 
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
-import java.time.LocalDate
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
@@ -37,52 +36,75 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      */
     override fun newInstance(args: Map<String, Any>): T {
         val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
-        // Filter the parameters that are present in the args map or are not optional
-        val parametersToPass = constructor.parameters.filter { parameter ->
-            args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
-        }
-        // Associate only the parameters that are present in the args map or are not optional
-        val parameters = parametersToPass.associateWith { parameter ->
-            val argValue = args[parameter.name] ?: run {
-                val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
-                val argKey = yamlArgAnnotation?.paramName ?: parameter.name
-                args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
+
+        if (args.containsKey("#")) {
+            return args["#"]?.let { convertToType(it, type) } as T
+        } else {
+            // Filter the parameters that are present in the args map or are not optional
+            val parametersToPass = constructor.parameters.filter { parameter ->
+                args.containsKey(parameter.name) || !parameter.isOptional || parameter.findAnnotation<YamlArg>() != null
             }
-            when {
-                parameter.findAnnotation<YamlConvert>() != null -> {
-                    val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
-                    val customParserInstance = customParserClass.objectInstance
-                        ?: customParserClass.java.getDeclaredConstructor().newInstance()
-                    if (argValue is Map<*, *>) {
-                        val convertedValue = customParserInstance.convert(argValue.toString())
-                        convertedValue
-                    } else {
-                        customParserInstance.convert(argValue.toString())
-                    }
+            // Associate only the parameters that are present in the args map or are not optional
+            val parameters = parametersToPass.associateWith { parameter ->
+                val argValue = args[parameter.name] ?: run {
+                    val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
+                    val argKey = yamlArgAnnotation?.paramName ?: parameter.name
+                    args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
                 }
-                parameter.type.classifier is KClass<*> -> {
-                    if (argValue is Map<*, *>) {
-                        yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
-                    } else if (argValue is List<*>) {
-                        val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
-                        val convertedList = argValue.map { element ->
-                            if (element is Map<*, *>) {
-                                yamlParser(listArgType).newInstance(element as Map<String, Any>)
-                            } else {
-                                element
-                            }
+                when {
+                    parameter.findAnnotation<YamlConvert>() != null -> {
+                        val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
+                        val customParserInstance = customParserClass.objectInstance
+                            ?: customParserClass.java.getDeclaredConstructor().newInstance()
+                        if (argValue is Map<*, *>) {
+                            val convertedValue = customParserInstance.convert(argValue.toString())
+                            convertedValue
+                        } else {
+                            customParserInstance.convert(argValue.toString())
                         }
-                        convertToType(convertedList, parameter.type.classifier as KClass<*>)
-                    } else {
-                        convertToType(argValue, parameter.type.classifier as KClass<*>)
                     }
+                    parameter.type.classifier is KClass<*> -> {
+                        if (argValue is Map<*, *>) {
+                            yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
+                        } else if (argValue is List<*>) {
+                            val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
+                            val convertedList = argValue.map { element ->
+                                if (element is Map<*, *>) {
+                                    yamlParser(listArgType).newInstance(element as Map<String, Any>)
+                                } else {
+                                    element
+                                }
+                            }
+                            convertToType(convertedList, parameter.type.classifier as KClass<*>)
+                        } else {
+                            convertToType(argValue, parameter.type.classifier as KClass<*>)
+                        }
+                    }
+                    else -> argValue
                 }
-                else -> argValue
             }
+            return constructor.callBy(parameters)
         }
-        return constructor.callBy(parameters)
     }
 
-
+    /**
+     * Function that converts the value to the type of the parameter.
+     */
+    private fun convertToType(argValue: Any, type: KClass<*>): Any {
+        return when {
+            type == String::class -> argValue
+            type == Boolean::class -> argValue.toString().toBoolean()
+            type == Short::class -> argValue.toString().toShort()
+            type == Int::class -> argValue.toString().toInt()
+            type == Long::class -> argValue.toString().toLong()
+            type == Double::class -> argValue.toString().toDouble()
+            type == Float::class -> argValue.toString().toFloat()
+            type == Char::class -> argValue.toString().first()
+            type == Byte::class -> argValue.toString().toByte()
+            type == List::class -> argValue as List<*>
+            type == Sequence::class && argValue is Iterable<*> -> argValue.asSequence()
+            else -> throw IllegalArgumentException("Unsupported type $type")
+        }
+    }
 }
 
