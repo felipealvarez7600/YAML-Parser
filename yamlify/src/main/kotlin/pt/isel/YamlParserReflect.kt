@@ -38,7 +38,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
 
         if (args.containsKey("#")) {
-            return convertToType(args["#"]!!, type) as T
+            return args["#"]?.let { convertToType(it, type) } as T
         } else {
             // Filter the parameters that are present in the args map or are not optional
             val parametersToPass = constructor.parameters.filter { parameter ->
