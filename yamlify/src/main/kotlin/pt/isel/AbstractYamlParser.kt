@@ -13,7 +13,6 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
     abstract fun newInstance(args: Map<String, Any>): T
-
     /**
      * Parses a yaml object into a T object.
      * The function just passes the yaml to a mutable List and calls the iterateOverObject function to handle the parsing and finally calls the newInstance.
@@ -74,7 +73,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
     override fun parseList(yaml: Reader): List<T> {
         val yamlLinesList = yaml.readLines().toMutableList()
         val finalList = iterateOverList(yamlLinesList)
-        // If it's a map then call the newInstance function to create the object and if not just return the value as T.
+        // If its a map then call the newInstance function to create the object and if not just return the value as T.
         return finalList.map { newInstance(it as Map<String, Any>) }
     }
 
@@ -90,7 +89,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             // If the line does not contain "-" skip it since it's not a list.
             if(line.contains("-")) {
                 val indentCounterNew = line.takeWhile { it == ' ' }.length
-                val (key, value) = line.split("-").map { it.trim() }
+                val value = line.split("-").last().trim()
                 // Check if the value is empty or blank, if it is, it means that it's a new object and if not it's a simple value.
                 if(value.isBlank() || value.isEmpty()) {
                     // Iterate over the lines to get the complete object.
@@ -107,4 +106,5 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
         }
         return finalList
     }
+
 }

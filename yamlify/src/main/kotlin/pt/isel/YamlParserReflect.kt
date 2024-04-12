@@ -34,6 +34,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      * Creates a new instance of T through the first constructor
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
+
     override fun newInstance(args: Map<String, Any>): T {
         val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
 
@@ -51,7 +52,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                     args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
                 }
-                println(argValue)
+
                 when {
                     parameter.findAnnotation<YamlConvert>() != null -> {
                         val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
@@ -64,11 +65,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                         } else if (argValue is List<*>) {
                             val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
                             val convertedList = argValue.map { element ->
-                                if (element is Map<*, *>) {
-                                    yamlParser(listArgType).newInstance(element as Map<String, Any>)
-                                } else {
-                                    element
-                                }
+                                yamlParser(listArgType).newInstance(element as Map<String, Any>)
                             }
                             convertToType(convertedList, parameter.type.classifier as KClass<*>)
                         } else {
@@ -78,6 +75,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     else -> argValue
                 }
             }
+            // Call the constructor with the parameters
             return constructor.callBy(parameters)
         }
     }
@@ -93,18 +91,17 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      * Function that converts the value to the type of the parameter.
      */
     private fun convertToType(argValue: Any, type: KClass<*>): Any {
-        return when {
-            type == String::class -> argValue
-            type == Boolean::class -> argValue.toString().toBoolean()
-            type == Short::class -> argValue.toString().toShort()
-            type == Int::class -> argValue.toString().toInt()
-            type == Long::class -> argValue.toString().toLong()
-            type == Double::class -> argValue.toString().toDouble()
-            type == Float::class -> argValue.toString().toFloat()
-            type == Char::class -> argValue.toString().first()
-            type == Byte::class -> argValue.toString().toByte()
-            type == List::class -> argValue as List<*>
-            type == Sequence::class && argValue is Iterable<*> -> argValue.asSequence()
+        return when (type) {
+            String::class -> argValue.toString()
+            Boolean::class -> argValue.toString().toBoolean()
+            Short::class -> argValue.toString().toShort()
+            Int::class -> argValue.toString().toInt()
+            Long::class -> argValue.toString().toLong()
+            Double::class -> argValue.toString().toDouble()
+            Float::class -> argValue.toString().toFloat()
+            Char::class -> argValue.toString().first()
+            Byte::class -> argValue.toString().toByte()
+            List::class -> argValue as List<*>
             else -> throw IllegalArgumentException("Unsupported type $type")
         }
     }
