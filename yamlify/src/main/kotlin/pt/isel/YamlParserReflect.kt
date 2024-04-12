@@ -54,14 +54,8 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 when {
                     parameter.findAnnotation<YamlConvert>() != null -> {
                         val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
-                        val customParserInstance = customParserClass.objectInstance
-                            ?: customParserClass.java.getDeclaredConstructor().newInstance()
-                        if (argValue is Map<*, *>) {
-                            val convertedValue = customParserInstance.convert(argValue.toString())
-                            convertedValue
-                        } else {
-                            customParserInstance.convert(argValue.toString())
-                        }
+                        val customParserInstance = instantiateCustomParser(customParserClass)
+                        customParserInstance.convert(argValue.toString())
                     }
                     parameter.type.classifier is KClass<*> -> {
                         if (argValue is Map<*, *>) {
@@ -84,6 +78,13 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 }
             }
             return constructor.callBy(parameters)
+        }
+    }
+
+    private fun instantiateCustomParser(parserClass: KClass<out YamlAny>): YamlAny {
+        return when (parserClass) {
+            YamlAny::class -> YamlAny()
+            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
         }
     }
 

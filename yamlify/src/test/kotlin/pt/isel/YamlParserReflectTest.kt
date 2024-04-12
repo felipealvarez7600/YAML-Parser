@@ -317,6 +317,26 @@ class YamlParserReflectTest {
         assertEquals(5, st.birth?.month?.value)
         assertEquals(26, st.birth?.dayOfMonth)
     }
+    @Test
+    fun parseTypeWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                subjects:
+                    maths: 08
+                    pt: 14
+                    art: 11
+                    eng: 13
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(2004, st.birth?.year)
+        assertEquals(5, st.birth?.month?.value)
+        assertEquals(26, st.birth?.dayOfMonth)
+    }
 }
 
 
