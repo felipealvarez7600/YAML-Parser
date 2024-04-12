@@ -51,6 +51,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                     args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
                 }
+                println(argValue)
                 when {
                     parameter.findAnnotation<YamlConvert>() != null -> {
                         val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
