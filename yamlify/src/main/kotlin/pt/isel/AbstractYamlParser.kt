@@ -101,8 +101,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                     // Call the iterateOverObject function to get the object and add it to the list
                     val obj = iterateOverObject(newObject, -1)
                     finalList.add(obj)
-                } else finalList.add(value)
-                // else finalList.add(convertToType(value, type))
+                } else finalList.add(mapOf("#" to value))
             }
         }
         return finalList

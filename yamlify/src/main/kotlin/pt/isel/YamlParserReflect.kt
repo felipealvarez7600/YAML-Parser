@@ -114,11 +114,11 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             parameterBuild = getParameterType(param, paramName)
         }
 
-        private fun getParameterType(param: KParameter, paramName: String): (Map<String, KParameter>) -> Any {
+        private fun getParameterType(param: KParameter, paramName: String): (Map.Entry<String, KParameter>) -> Any {
             val paramKClass = param.type.classifier as KClass<*>
-            return if (paramKClass == String::class) {
-                { map -> map[paramName]!! }
-            } else {
+//            return if (paramKClass == String::class) {
+//                { map -> map[paramName]!! }
+//            } else {
                 if (paramKClass.javaPrimitiveType != null) {
                     val constructors = paramKClass.constructors
                     if (constructors.size != 1) {
@@ -145,6 +145,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         }
 
         private val primitives = mapOf<KClass<*>, (Any) -> Any>(
+            String::class to { str -> str.toString() },
             Int::class to { str -> str.toString().toInt() },
             Long::class to { str -> str.toString().toLong() },
             Double::class to { str -> str.toString().toDouble() },
@@ -154,7 +155,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             Char::class to { str -> str.toString().first() },
             Boolean::class to { str -> str.toString().toBoolean() },
             List::class to { str -> str.toString().split(",").map { it.trim() } },
-            Sequence::class to { str -> str.toString().split(",").asSequence() }
         )
 
         fun buildParameter(args: Map<String, KParameter>): Any {
