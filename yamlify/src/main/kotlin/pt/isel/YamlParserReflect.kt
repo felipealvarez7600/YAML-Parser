@@ -95,7 +95,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 //        return constructor.callBy(parameters)
         val objValues = parametersBuilders.filter { it.buildParameter(args) != null }
             .map { it.buildParameter(args) }
-            .toTypedArray()
 
         return constructor.call(objValues)
     }
