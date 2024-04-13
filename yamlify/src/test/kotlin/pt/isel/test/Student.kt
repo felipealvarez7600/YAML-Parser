@@ -1,5 +1,7 @@
 package pt.isel.test
 
+import pt.isel.Details
+import pt.isel.UrlComponents
 import pt.isel.YamlAny
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
@@ -14,4 +16,8 @@ class Student @JvmOverloads constructor (
     val grades: List<Grade> = emptyList(),
     @YamlConvert(YamlAny::class)
     val birth: LocalDate? = null,
+    @YamlConvert(YamlAny::class)
+    val details: Details? = null,
+    @YamlConvert(YamlAny::class)
+    val url: UrlComponents? = null
 )

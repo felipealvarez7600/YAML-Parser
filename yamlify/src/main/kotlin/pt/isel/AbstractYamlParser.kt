@@ -1,5 +1,6 @@
 package pt.isel
 
+import pt.isel.interfaces.YamlParser
 import java.io.Reader
 import kotlin.reflect.KClass
 
@@ -42,7 +43,9 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                 yamlLinesList.add(0, line)
                 break
             }
-            val (key, value) = line.split(":").map { it.trim() }
+
+            val (key, value) = line.split(Regex("""\s*:\s*(?!\S)""")).map { it.trim() }
+
             // Check if the value is empty or blank, if it is, it means that it's a normal pair to add to the map or list.
             if (value.isBlank() || value.isEmpty()) {
                 // Check if the value is a list or an object.

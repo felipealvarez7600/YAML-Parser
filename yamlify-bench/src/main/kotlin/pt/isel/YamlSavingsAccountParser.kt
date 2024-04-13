@@ -1,5 +1,6 @@
 package pt.isel
 
+import pt.isel.interfaces.YamlParser
 import java.io.Reader
 
 class YamlSavingsAccountParser : YamlParser<SavingsAccount> {

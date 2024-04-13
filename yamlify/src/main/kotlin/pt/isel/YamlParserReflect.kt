@@ -48,6 +48,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             // Associate only the parameters that are present in the args map or are not optional
             val parameters = parametersToPass.associateWith { parameter ->
                 val argValue = args[parameter.name] ?: run {
+
                     val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
                     val argKey = yamlArgAnnotation?.paramName ?: parameter.name
                     args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
@@ -57,7 +58,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     parameter.findAnnotation<YamlConvert>() != null -> {
                         val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
                         val customParserInstance = instantiateCustomParser(customParserClass)
-                        customParserInstance.convert(argValue.toString())
+                        parameter.name?.let { customParserInstance.convert(argValue.toString(), it) }
                     }
                     parameter.type.classifier is KClass<*> -> {
                         if (argValue is Map<*, *>) {
@@ -75,12 +76,11 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     else -> argValue
                 }
             }
-            // Call the constructor with the parameters
             return constructor.callBy(parameters)
         }
     }
 
-    private fun instantiateCustomParser(parserClass: KClass<out YamlAny>): YamlAny {
+    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
         return when (parserClass) {
             YamlAny::class -> YamlAny()
             else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
