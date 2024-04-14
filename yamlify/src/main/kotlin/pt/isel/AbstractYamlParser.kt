@@ -75,7 +75,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
         val yamlLinesList = yaml.readLines().toMutableList()
         val finalList = iterateOverList(yamlLinesList)
         // If it's a map then call the newInstance function to create the object and if not just return the value as T.
-        return finalList.map { if(it is Map<*, *>) newInstance(it as Map<String, Any>) else it as T}
+        return finalList.map { newInstance(it as Map<String, Any>) }
     }
 
     /**
