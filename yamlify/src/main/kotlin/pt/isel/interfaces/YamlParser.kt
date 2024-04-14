@@ -1,4 +1,4 @@
-package pt.isel
+package pt.isel.interfaces
 
 import java.io.Reader
 

@@ -54,26 +54,16 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 when {
                     parameter.findAnnotation<YamlConvert>() != null -> {
                         val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
-                        val customParserInstance = customParserClass.objectInstance
-                            ?: customParserClass.java.getDeclaredConstructor().newInstance()
-                        if (argValue is Map<*, *>) {
-                            val convertedValue = customParserInstance.convert(argValue.toString())
-                            convertedValue
-                        } else {
-                            customParserInstance.convert(argValue.toString())
-                        }
+                        val customParserInstance = instantiateCustomParser(customParserClass)
+                        parameter.name?.let { customParserInstance.convert(argValue.toString(), it) }
                     }
                     parameter.type.classifier is KClass<*> -> {
                         if (argValue is Map<*, *>) {
                             yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
                         } else if (argValue is List<*>) {
                             val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
-                            argValue.map { element ->
-                                if (element is Map<*, *>) {
-                                    yamlParser(listArgType).newInstance(element as Map<String, Any>)
-                                } else {
-                                    element
-                                }
+                            argValue.map {
+                                yamlParser(listArgType).newInstance(it as Map<String, Any>)
                             }
                         } else {
                             convertToType(argValue, parameter.type.classifier as KClass<*>)
@@ -83,6 +73,13 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 }
             }
             return constructor.callBy(parameters)
+        }
+    }
+
+    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
+        return when (parserClass) {
+            YamlAny::class -> YamlAny()
+            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
         }
     }
 

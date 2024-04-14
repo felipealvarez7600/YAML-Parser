@@ -3,6 +3,7 @@ package pt.isel
 import org.junit.jupiter.api.assertThrows
 import pt.isel.test.Classroom
 import pt.isel.test.Student
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -313,15 +314,51 @@ class YamlParserReflectTest {
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
-        assertEquals(2004, st.birth?.year)
-        assertEquals(5, st.birth?.month?.value)
         assertEquals(26, st.birth?.dayOfMonth)
+        assertEquals(5, st.birth?.month?.value)
+        assertEquals(2004, st.birth?.year)
+    }
+
+    @Test
+    fun parseSubjectsWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                details:
+                    age: 16
+                    height: 162
+                    asFinished: false
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(16, st.details?.age)
+        assertEquals(162, st.details?.height)
+        assertEquals(null, st.details?.year)
+        assertEquals(false, st.details?.asFinished)
+    }
+
+    @Test
+    fun parseURLWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                url: http://marican.com:1698/loja/couves
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals("http", st.url?.protocol)
+        assertEquals("marican.com", st.url?.host)
+        assertEquals(1698, st.url?.port)
+        assertEquals("/loja/couves", st.url?.path)
+        assertEquals(null, st.url?.query)
     }
 }
-
-
-
-
 
 const val yamlSequenceOfStudents = """
             -
