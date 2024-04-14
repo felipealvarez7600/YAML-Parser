@@ -73,10 +73,13 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         if (args.containsKey("#")) {
             return args["#"]?.let { primitives[type]?.invoke(it) } as T
         } else {
-            val parametersToPass = parametersOfType.filter { args.containsKey(it.name) }
+
+            val parametersToPass = parametersOfType.filter { args.containsKey(it.name) || !it.isOptional || it.findAnnotation<YamlArg>() != null}
             val objValues = parametersToPass.associateWith { p ->
-                val entry = args.entries.find { (key, _) -> key == p.name }
-                entry?.let { parametersBuilders[entry.key]?.buildParameter(it.value) ?: throw IllegalArgumentException("Missing parameter ${entry.key}") }
+                val paramName = p.findAnnotation<YamlArg>()?.paramName ?: p.name
+                ?: throw IllegalArgumentException("Parameter name not found")
+                val entry = args.entries.find { (key, _) -> key == paramName || key == p.name }
+                entry?.let { parametersBuilders[p.name]?.buildParameter(it.value) ?: throw IllegalArgumentException("Missing parameter ${entry.key}") }
             }
 
             return constructor.callBy(objValues)
@@ -179,11 +182,9 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         private fun objectBuildParameters(buildParameters: Map<String, (Any) -> Any>, constructor: KFunction<Any>, map: Any): Any {
             if (map !is Map<*,*>) throw IllegalArgumentException("Expected a map")
             val parameterValues = buildParameters.map { (paramName, value) ->
-                if (map.containsKey(paramName)) {
-                    value(map[paramName]!!)
-                } else {
-                    throw IllegalArgumentException("Missing parameter $paramName")
-                }
+                val paramWithoutAnnotation = constructor.parameters.find { it.name == paramName }!!
+                val parameter = map[paramName] ?: map[paramWithoutAnnotation.findAnnotation<YamlArg>()?.paramName!!] ?: throw IllegalArgumentException("Missing parameter $paramName")
+                value(parameter)
             }.toTypedArray()
 
             try {
