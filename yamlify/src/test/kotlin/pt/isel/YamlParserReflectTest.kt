@@ -1,11 +1,16 @@
+
+
+
 package pt.isel
 
 import org.junit.jupiter.api.assertThrows
 import pt.isel.test.Classroom
 import pt.isel.test.Student
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+
 
 class YamlParserReflectTest {
 
@@ -296,6 +301,66 @@ class YamlParserReflectTest {
         assertEquals("Porto", st2.address?.city)
         assertFalse { seq.hasNext() }
     }
+
+    @Test
+    fun parseBirthWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                birth:
+                    year: 2004
+                    month: 05
+                    day: 26
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(26, st.birth?.dayOfMonth)
+        assertEquals(5, st.birth?.month?.value)
+        assertEquals(2004, st.birth?.year)
+    }
+
+    @Test
+    fun parseSubjectsWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                details:
+                    age: 16
+                    height: 162
+                    asFinished: false
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(16, st.details?.age)
+        assertEquals(162, st.details?.height)
+        assertEquals(null, st.details?.year)
+        assertEquals(false, st.details?.asFinished)
+    }
+
+    @Test
+    fun parseURLWithAnnotation() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                from: Oleiros
+                url: http://marican.com:1698/loja/couves
+            """
+        val st = YamlParserReflect.yamlParser(Student::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals("http", st.url?.protocol)
+        assertEquals("marican.com", st.url?.host)
+        assertEquals(1698, st.url?.port)
+        assertEquals("/loja/couves", st.url?.path)
+        assertEquals(null, st.url?.query)
+    }
 }
 
 const val yamlSequenceOfStudents = """
@@ -341,6 +406,7 @@ const val yamlSequenceOfStudentsWithAnnotation = """
               address:
                 street: Rua Rosa
                 nr: 78
+                floor: r/c
                 city: Lisbon
               city of birth: Oleiros
               grades:
@@ -369,4 +435,3 @@ const val yamlSequenceOfStudentsWithAnnotation = """
                   subject: LAE
                   classification: 18
         """
-
