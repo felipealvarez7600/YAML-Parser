@@ -1,6 +1,7 @@
 package pt.isel
 
 import pt.isel.annotations.YamlArg
+import pt.isel.annotations.YamlConvert
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -65,11 +66,8 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
      * Creates a new instance of T through the first constructor
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
-
     override fun newInstance(args: Map<String, Any>): T {
-//        // Is this string the key of the property of yaml object?
-//        val constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
-//        // Filter the parameters that are present in the args map or are not optional
+        // Filter the parameters that are present in the args map
         if (args.containsKey("#")) {
             return args["#"]?.let { primitives[type]?.invoke(it) } as T
         } else {
@@ -90,22 +88,25 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 //                val argKey = yamlArgAnnotation?.paramName ?: parameter.name
 //                args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
 //            }
-//
-//            when (val classifier = parameter.type.classifier) {
-//                is KClass<*> -> {
+//            when {
+//                parameter.findAnnotation<YamlConvert>() != null -> {
+//                    val customParserClass = parameter.findAnnotation<YamlConvert>()!!.parser
+//                    val customParserInstance = instantiateCustomParser(customParserClass)
+//                    parameter.name?.let { customParserInstance.convert(argValue.toString(), it) }
+//                }
+//                parameter.type.classifier is KClass<*> -> {
 //                    if (argValue is Map<*, *>) {
-//                        yamlParser(classifier).newInstance(argValue as Map<String, Any>)
+//                        yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
 //                    } else if (argValue is List<*>) {
 //                        val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
-//                        val convertedList = argValue.map { element ->
-//                            yamlParser(listArgType).newInstance(element as Map<String, Any>)
+//                        argValue.map {
+//                            yamlParser(listArgType).newInstance(it as Map<String, Any>)
 //                        }
-//                        convertToType(convertedList, classifier)
 //                    } else {
-//                        convertToType(argValue, classifier)
+//                        convertToType(argValue, parameter.type.classifier as KClass<*>)
 //                    }
 //                }
-//                else -> argValue // For primitive types
+//                else -> argValue
 //            }
 //        }
 //        // Call the constructor with the parameters
@@ -195,6 +196,13 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 
         fun buildParameter(value: Any): Any {
             return parameterBuild(value)
+        }
+    }
+
+    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
+        return when (parserClass) {
+            YamlAny::class -> YamlAny()
+            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
         }
     }
 }
