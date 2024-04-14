@@ -137,14 +137,17 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                     val listParametersFiltered = filterParameters(listTypeConstructor.parameters)
                     val listBuildParameters = listParametersFiltered.associate { p -> (p.name!! to getParameterType(p)) }
                     return { list ->
-                        if (list is List<*> && list.isEmpty()) {
+                        if (list !is List<*>) throw IllegalArgumentException("Expected a list")
+                        if (list.isEmpty()) { // This condition may be unnecessary
                             emptyList<Any>()
                         } else {
-                            (list as? List<*>)?.map {element ->
+                            (list).map { element ->
                                 if (element != null) {
                                     objectBuildParameters(listBuildParameters, listTypeConstructor, element)
+                                } else {
+                                    throw IllegalArgumentException("Expected a list")
                                 }
-                            } ?: throw IllegalArgumentException("Expected a list")
+                            }
                         }
                     }
                 }
