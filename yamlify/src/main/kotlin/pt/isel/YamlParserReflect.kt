@@ -68,14 +68,13 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                             yamlParser(parameter.type.classifier as KClass<*>).newInstance(argValue as Map<String, Any>)
                         } else if (argValue is List<*>) {
                             val listArgType = parameter.type.arguments.first().type!!.classifier as KClass<*>
-                            val convertedList = argValue.map { element ->
+                            argValue.map { element ->
                                 if (element is Map<*, *>) {
                                     yamlParser(listArgType).newInstance(element as Map<String, Any>)
                                 } else {
                                     element
                                 }
                             }
-                            convertToType(convertedList, parameter.type.classifier as KClass<*>)
                         } else {
                             convertToType(argValue, parameter.type.classifier as KClass<*>)
                         }
@@ -101,8 +100,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             type == Float::class -> argValue.toString().toFloat()
             type == Char::class -> argValue.toString().first()
             type == Byte::class -> argValue.toString().toByte()
-            type == List::class -> argValue as List<*>
-            type == Sequence::class && argValue is Iterable<*> -> argValue.asSequence()
             else -> throw IllegalArgumentException("Unsupported type $type")
         }
     }
