@@ -1,6 +1,5 @@
 package pt.isel
 
-import YamlAny
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
 import kotlin.reflect.KClass
@@ -137,7 +136,9 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 param.findAnnotation<YamlConvert>() != null -> {
                     val parserClass = param.findAnnotation<YamlConvert>()!!.parser
                     val parser = instantiateCustomParser(parserClass)
-                    return { any -> parser.convert(any.toString(), param.name!!) ?: throw IllegalArgumentException("Could not convert")}
+                    return { any ->
+                        parser.convert(any.toString(), param.name!!) ?: throw IllegalArgumentException("Could not convert")
+                    }
                 }
                 // E.g: When the parameter is grades from Student
                 paramKClass == List::class -> {
@@ -193,10 +194,16 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
         }
 
         private fun objectBuildParameters(buildParameters: Map<String, (Any) -> Any>, constructor: KFunction<Any>, map: Any): Any {
+            //            val argValue = args[parameter.name] ?: run {
+//                val yamlArgAnnotation = parameter.findAnnotation<YamlArg>()
+//                val argKey = yamlArgAnnotation?.paramName ?: parameter.name
+//                args[argKey] ?: throw IllegalArgumentException("Missing parameter $argKey")
+//            }
             if (map !is Map<*,*>) throw IllegalArgumentException("Expected a map")
             val parameterValues = buildParameters.map { (paramName, value) ->
                 val paramWithoutAnnotation = constructor.parameters.find { it.name == paramName }!!
-                val parameter = map[paramName] ?: map[paramWithoutAnnotation.findAnnotation<YamlArg>()?.paramName!!] ?: throw IllegalArgumentException("Missing parameter $paramName")
+                val parameter = map[paramName] ?: map[paramWithoutAnnotation.findAnnotation<YamlArg>()?.paramName!!]
+                ?: throw IllegalArgumentException("Missing parameter $paramName")
                 value(parameter)
             }.toTypedArray()
 
@@ -209,13 +216,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
 
         fun buildParameter(value: Any): Any {
             return parameterBuild(value)
-        }
-    }
-
-    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
-        return when (parserClass) {
-            YamlAny::class -> YamlAny()
-            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
         }
     }
 }
