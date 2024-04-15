@@ -155,7 +155,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 }
                 lambda(value)
             }
-
             try {
                 return constructor.callBy(parameterToPass)
             } catch (e: Exception) {
