@@ -1,3 +1,6 @@
+
+
+
 package pt.isel
 
 import org.junit.jupiter.api.assertThrows
@@ -432,4 +435,3 @@ const val yamlSequenceOfStudentsWithAnnotation = """
                   subject: LAE
                   classification: 18
         """
-

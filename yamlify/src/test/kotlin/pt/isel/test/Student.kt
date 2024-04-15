@@ -1,8 +1,5 @@
 package pt.isel.test
 
-import pt.isel.Details
-import pt.isel.UrlComponents
-import pt.isel.YamlAny
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
 import java.time.LocalDate
