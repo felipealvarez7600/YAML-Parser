@@ -5,9 +5,9 @@ package pt.isel
 
 import org.junit.jupiter.api.assertThrows
 import pt.isel.test.Classroom
-import pt.isel.test.Classroom2
+import pt.isel.test.NewClassroom
 import pt.isel.test.Student
-import pt.isel.test.Student2
+import pt.isel.test.NewStudent
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -195,7 +195,7 @@ class YamlParserReflectTest {
         assertFalse { seq.hasNext() }
     }
 
-    private fun assertStudents2InSequence(seq: Iterator<Student2>) {
+    private fun assertStudents2InSequence(seq: Iterator<NewStudent>) {
         val st1 = seq.next()
         assertEquals("Maria Candida", st1.name)
         assertEquals(873435, st1.nr)
@@ -233,7 +233,7 @@ class YamlParserReflectTest {
     }
 
     @Test fun parseSequenceOfStudentsWithAddressesAndGradesWithAnnotation() {
-        val seq = YamlParserReflect.yamlParser(Student2::class)
+        val seq = YamlParserReflect.yamlParser(NewStudent::class)
             .parseList(yamlSequenceOfStudents2WithAnnotation.reader())
             .iterator()
         assertStudents2InSequence(seq)
@@ -241,12 +241,12 @@ class YamlParserReflectTest {
     @Test fun parseClassroomWithAnnotation() {
         val yaml = """
           id: i45
-          students2: $yamlSequenceOfStudents2WithAnnotation
+          newStudents: $yamlSequenceOfStudents2WithAnnotation
         """.trimIndent()
-        val cr = YamlParserReflect.yamlParser(Classroom2::class)
+        val cr = YamlParserReflect.yamlParser(NewClassroom::class)
             .parseObject(yaml.reader())
         assertEquals("i45", cr.id)
-        assertStudents2InSequence(cr.students2.iterator())
+        assertStudents2InSequence(cr.newStudents.iterator())
     }
 
     @Test fun parseStudentWithAnnotation() {
@@ -254,7 +254,7 @@ class YamlParserReflectTest {
                 name: Maria Candida
                 nr: 873435
                 city of birth: Oleiros"""
-        val st = YamlParserReflect.yamlParser(Student2::class).parseObject(yaml.reader())
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
@@ -268,7 +268,7 @@ class YamlParserReflectTest {
                   nr: 78
                   city: Lisbon
                 city of birth: Oleiros"""
-        val st = YamlParserReflect.yamlParser(Student2::class).parseObject(yaml.reader())
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
@@ -288,7 +288,7 @@ class YamlParserReflectTest {
               nr: 1214398
               city of birth: Tamega
         """
-        val seq = YamlParserReflect.yamlParser(Student2::class)
+        val seq = YamlParserReflect.yamlParser(NewStudent::class)
             .parseList(yaml.reader())
             .iterator()
         val st1 = seq.next()
@@ -320,7 +320,7 @@ class YamlParserReflectTest {
                 city: Porto
               city of birth: Tamega
         """
-        val seq = YamlParserReflect.yamlParser(Student2::class)
+        val seq = YamlParserReflect.yamlParser(NewStudent::class)
             .parseList(yaml.reader())
             .iterator()
         val st1 = seq.next()
@@ -351,7 +351,7 @@ class YamlParserReflectTest {
                     month: 05
                     day: 26
             """
-        val st = YamlParserReflect.yamlParser(Student2::class).parseObject(yaml.reader())
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
@@ -371,7 +371,7 @@ class YamlParserReflectTest {
                     height: 162
                     asFinished: false
             """
-        val st = YamlParserReflect.yamlParser(Student2::class).parseObject(yaml.reader())
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
@@ -389,7 +389,7 @@ class YamlParserReflectTest {
                 city of birth: Oleiros
                 url: http://marican.com:1698/loja/couves
             """
-        val st = YamlParserReflect.yamlParser(Student2::class).parseObject(yaml.reader())
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)

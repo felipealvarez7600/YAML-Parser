@@ -7,7 +7,7 @@ import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
 import java.time.LocalDate
 
-class Student2 @JvmOverloads constructor (
+class NewStudent @JvmOverloads constructor (
     val name: String,
     val nr: Int,
     @YamlArg("city of birth")
