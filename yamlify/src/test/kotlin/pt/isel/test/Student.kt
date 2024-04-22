@@ -11,11 +11,5 @@ class Student @JvmOverloads constructor (
     val nr: Int,
     val from: String,
     val address: Address? = null,
-    val grades: List<Grade> = emptyList(),
-    @YamlConvert(YamlAny::class)
-    val birth: LocalDate? = null,
-    @YamlConvert(YamlAny::class)
-    val details: Details? = null,
-    @YamlConvert(YamlAny::class)
-    val url: UrlComponents? = null
+    val grades: List<Grade> = emptyList()
 )
