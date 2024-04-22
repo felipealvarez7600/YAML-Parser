@@ -28,7 +28,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             Char::class to { str -> str.toString().first() },
             Boolean::class to { str -> str.toString().toBoolean() },
         )
-        constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
+        constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found, type is $type")
         allParametersOfType = constructor.parameters/*.filter { it.name != null || it.findAnnotation<YamlArg>() != null }*/
         parametersBuilders = allParametersOfType.associate {
             val paramName = it.findAnnotation<YamlArg>()?.paramName ?: it.name ?: throw IllegalArgumentException("Parameter name not found")
@@ -90,37 +90,24 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
                 }
                 // E.g: When the parameter is grades from Student
                 paramKClass == List::class -> {
-                    val listType = param.type.arguments.first().type?.classifier as? KClass<*> ?: throw IllegalArgumentException("List element type not found")
-                    val listTypeConstructor = listType.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found for list element type")
-                    val listParameters = listTypeConstructor.parameters
-                    val listBuildParameters = listParameters.associate { p ->
-                        val paramName = p.findAnnotation<YamlArg>()?.paramName ?: p.name ?: throw IllegalArgumentException("Parameter name not found")
-                        (paramName to (p to getParameterType(p)))
-                    }
+                    val listType = param.type.arguments.first().type?.classifier as? KClass<*>
+                        ?: throw IllegalArgumentException("List element type not found")
+                    val nestedParserOfList = yamlParser(listType)
                     return { list ->
                         if (list !is List<*>) throw IllegalArgumentException("Expected a list")
                         if (list.isEmpty()) { // This condition may be unnecessary
                             emptyList<Any>()
                         } else {
                             (list).map { element ->
-                                if (element != null) {
-                                    objectBuildParameters(listBuildParameters, listTypeConstructor, element)
-                                } else {
-                                    throw IllegalArgumentException("Expected a list")
-                                }
+                                nestedParserOfList.newInstance(element as Map<String, Any>)
                             }
                         }
                     }
                 }
                 paramKClass.javaPrimitiveType == null && paramKClass != String::class -> {
-                    val objConstructor = paramKClass.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found")
-                    val objParameters = objConstructor.parameters
-                    val buildParameters = objParameters.associate { p ->
-                        val paramName = p.findAnnotation<YamlArg>()?.paramName ?: p.name ?: throw IllegalArgumentException("Parameter name not found")
-                        (paramName to (p to getParameterType(p)))
-                    }
+                    val nestedParser = yamlParser(paramKClass)
                     return { map ->
-                        objectBuildParameters(buildParameters, objConstructor, map)
+                        nestedParser.newInstance(map as Map<String, Any>)
                     }
                 }
                 else -> getPrimitiveCreator(paramKClass)
@@ -134,27 +121,10 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             }
         }
 
-        private fun argumentEntry(entry: Map.Entry<*, *>, buildParameters: Map<String, Pair<KParameter, (Any) -> Any>>): Pair<KParameter, Any?> {
-            buildParameters[entry.key]?.let { builder ->
-                return builder.first to entry.value?.let { builder.second(it) }
-            }
-            throw IllegalArgumentException("Missing parameter ${entry.key}")
-        }
-
         private fun getPrimitiveCreator(paramKClass: KClass<*>): (Any) -> Any {
             val primitiveCreator = primitives[paramKClass]
             return { any ->
                 primitiveCreator?.invoke(any) ?: throw IllegalArgumentException("No primitive type has been found")
-            }
-        }
-
-        private fun objectBuildParameters(buildParameters: Map<String, Pair<KParameter, (Any) -> Any>>, constructor: KFunction<Any>, map: Any): Any {
-            if (map !is Map<*,*>) throw IllegalArgumentException("Expected a map")
-            val argumentsToPass: Map<KParameter, Any?> = map.entries.associate { argumentEntry(it, buildParameters) }
-            try {
-                return constructor.callBy(argumentsToPass)
-            } catch (e: Exception) {
-                throw RuntimeException(e)
             }
         }
 
