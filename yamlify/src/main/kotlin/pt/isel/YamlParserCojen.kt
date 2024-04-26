@@ -52,28 +52,71 @@ open class YamlParserCojen<T : Any>(
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun buildYamlParser() : ClassMaker {
-        val parameters = type.constructors.first().parameters.filter {!it.isOptional}
+        // isto vai ter que ser alterado para ir buscar os parametros do construtor que sejam realmente necessarios
+        val parameters = type.constructors.first().parameters.take(nrOfInitArgs)
         val className = parserName(type, nrOfInitArgs)
+
+        // Criar a classe com o nome certo e extender a classe YamlParserCojen
         val classMaker = ClassMaker.begin(className).public_().extend(YamlParserCojen::class.java).public_()
+
+        // Adicionar os campos necessarios
         classMaker.addField(KClass::class.java, "type").private_().final_()
         classMaker.addField(Integer::class.java, "nrOfInitArgs").private_().final_()
+
+        // Adicionar o construtor
         val constructor = classMaker.addConstructor(KClass::class.java, Integer::class.java).public_()
+
+        // Adicionar os campos
         constructor.field("type").set(constructor.param(0))
         constructor.field("nrOfInitArgs").set(constructor.param(1))
+
+        // Adicionar o super()
         constructor.invokeSuperConstructor(constructor.param(0), constructor.param(1))
+
+        // Adicionar o metodo newInstance
         val newInstanceMethod = classMaker.addMethod(Any::class.java, "newInstance", Map::class.java).public_().override()
         val args = newInstanceMethod.param(0)
 
-//        val constructorArgs = mutableListOf<Any>()
-//        val firstArg = args.invoke("values").invoke("iterator").invoke("next")
-//        parameters.forEach { param ->
-//            val paramName = param.name
-//            val value = args.invoke("get", paramName)
-//            val cast = newInstanceMethod.invoke("valueOf", value.cast(String::class.java))
-//            constructorArgs.add(value)
-//        }
-//        val constructorCall = newInstanceMethod.new_(type.java, *constructorArgs.toTypedArray())
-//        newInstanceMethod.return_(constructorCall)
+        val constructorArgs = mutableListOf<Variable>()
+
+        // Adicionar os parametros ao construtor
+        parameters.forEach { param ->
+            val paramName = param.name
+            val value = args.invoke("get", paramName)
+            val newValue = when(param.type.javaType) {
+                Int::class.java -> newInstanceMethod.`var`(Int::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                Long::class.java -> newInstanceMethod.`var`(Long::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                Double::class.java -> newInstanceMethod.`var`(Double::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                Float::class.java -> newInstanceMethod.`var`(Float::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                Short::class.java -> newInstanceMethod.`var`(Short::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                Byte::class.java -> newInstanceMethod.`var`(Byte::class.java)
+                    .invoke("valueOf", value.cast(String::class.java))
+
+                String::class.java -> value.cast(String::class.java)
+
+                List::class.java -> {
+                    TODO()
+                }
+
+                // O else deveria ser quando ele chega no caso do Address ou outros objectos
+                else -> {
+                    TODO()
+                }
+            }
+            constructorArgs.add(newValue)
+        }
+        val constructorCall = newInstanceMethod.new_(type.java, *constructorArgs.toTypedArray())
+        newInstanceMethod.return_(constructorCall)
 
         return classMaker
     }
