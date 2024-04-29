@@ -78,12 +78,22 @@ open class YamlParserCojen<T : Any>(
         val args = newInstanceMethod.param(0)
 
         val constructorArgs = mutableListOf<Variable>()
-
-        // Adicionar os parametros ao construtor
+        if(nrOfInitArgs == 0){
+            val primitiveValue = args.invoke("get", "#")
+            val newValue = if(type.java.isPrimitive) {
+                newInstanceMethod.`var`(type.java)
+                    .invoke("valueOf", primitiveValue.cast(String::class.java))
+            }
+            else { // caso de String
+                primitiveValue.cast(String::class.java)
+            }
+            newInstanceMethod.return_(newValue)
+            return classMaker
+        }
         parameters.forEach { param ->
             val paramName = param.name
             val value = args.invoke("get", paramName)
-            val newValue = when(param.type.javaType) {
+            val newValue = when (param.type.javaType) {
                 Int::class.java -> newInstanceMethod.`var`(Int::class.java)
                     .invoke("valueOf", value.cast(String::class.java))
 
@@ -110,14 +120,18 @@ open class YamlParserCojen<T : Any>(
 
                 // O else deveria ser quando ele chega no caso do Address ou outros objectos
                 else -> {
-                    TODO()
+                    val valueMap = value.cast(Map::class.java)
+                    val yamlParser = yamlParser(param.type.classifier as KClass<*>)
+                    val newObject = newInstanceMethod.new_(yamlParser.javaClass)
+                    newObject.invoke("newInstance", valueMap)
+
                 }
             }
             constructorArgs.add(newValue)
         }
+
         val constructorCall = newInstanceMethod.new_(type.java, *constructorArgs.toTypedArray())
         newInstanceMethod.return_(constructorCall)
-
         return classMaker
     }
 
