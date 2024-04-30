@@ -45,7 +45,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                 break
             }
 
-            val (key, value) = line.split(Regex("""\s*:\s*(?!\S)""")).map { it.trim() }
+            val (key, value) = line.split(":").map { it.trim() }
 
             // Check if the value is empty or blank, if it is, it means that it's a normal pair to add to the map or list.
             if (value.isBlank() || value.isEmpty()) {

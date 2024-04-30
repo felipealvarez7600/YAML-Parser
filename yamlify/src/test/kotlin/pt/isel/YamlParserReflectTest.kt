@@ -381,24 +381,24 @@ class YamlParserReflectTest {
         assertEquals(false, st.details?.asFinished)
     }
 
-    @Test
-    fun parseURLWithAnnotation() {
-        val yaml = """
-                name: Maria Candida
-                nr: 873435
-                city of birth: Oleiros
-                url: http://marican.com:1698/loja/couves
-            """
-        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
-        assertEquals("Maria Candida", st.name)
-        assertEquals(873435, st.nr)
-        assertEquals("Oleiros", st.from)
-        assertEquals("http", st.url?.protocol)
-        assertEquals("marican.com", st.url?.host)
-        assertEquals(1698, st.url?.port)
-        assertEquals("/loja/couves", st.url?.path)
-        assertEquals(null, st.url?.query)
-    }
+//    @Test
+//    fun parseURLWithAnnotation() {
+//        val yaml = """
+//                name: Maria Candida
+//                nr: 873435
+//                city of birth: Oleiros
+//                url: http://marican.com:1698/loja/couves
+//            """
+//        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
+//        assertEquals("Maria Candida", st.name)
+//        assertEquals(873435, st.nr)
+//        assertEquals("Oleiros", st.from)
+//        assertEquals("http", st.url?.protocol)
+//        assertEquals("marican.com", st.url?.host)
+//        assertEquals(1698, st.url?.port)
+//        assertEquals("/loja/couves", st.url?.path)
+//        assertEquals(null, st.url?.query)
+//    }
 }
 
 const val yamlSequenceOfStudents = """

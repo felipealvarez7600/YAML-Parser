@@ -8,6 +8,7 @@ open class YamlParserStudentBenchmark  {
 
     private val parserStudentBaseline = YamlStudentParser()
     private val parserStudentReflect = YamlParserReflect.yamlParser(Student::class)
+    private val parserStudentDynamic = YamlParserCojen.yamlParser(Student::class)
 
     @Benchmark
     fun studentBaseline(): Student {
@@ -17,6 +18,11 @@ open class YamlParserStudentBenchmark  {
     @Benchmark
     fun studentReflect(): Student {
         return parserStudentReflect
+            .parseObject(yamlStudent.reader())
+    }
+    @Benchmark
+    fun studentDynamic(): Student {
+        return parserStudentDynamic
             .parseObject(yamlStudent.reader())
     }
 }
