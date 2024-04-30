@@ -80,7 +80,7 @@ open class YamlParserCojen<T : Any>(
         val newInstanceMethod = classMaker.addMethod(Any::class.java, "newInstance", Map::class.java).public_().override()
         val args = newInstanceMethod.param(0)
 
-        val constructorArgs = mutableListOf<Variable>()
+        val constructorArgs = mutableListOf<Any>()
         if(nrOfInitArgs == 0){
             val primitiveValue = args.invoke("get", "#")
             val newValue = if(type.java.isPrimitive) {
@@ -123,8 +123,15 @@ open class YamlParserCojen<T : Any>(
                     val elementType = listType.actualTypeArguments[0] as Class<*>
                     val listValues = mutableListOf<Any>()
                     val yamlParserNew = newInstanceMethod.invoke("yamlParser", elementType)
-                    val list = value.cast(List::class.java)
-                    TODO()
+                    val listIterator = value.cast(List::class.java).invoke("iterator")
+                    val loopStart = newInstanceMethod.label().here()
+                    val loopEnd = newInstanceMethod.label()
+                    listIterator.invoke("hasNext").ifFalse(loopEnd)
+                    val listValue = listIterator.invoke("next")
+                    yamlParserNew.invoke("newInstance", listValue.cast(Map::class.java)).let { listValues.add(it.cast(elementType)) }
+                    newInstanceMethod.goto_(loopStart)
+                    loopEnd.here()
+                    listValues
                 }
 
                 // O else deveria ser quando ele chega no caso do Address ou outros objectos
