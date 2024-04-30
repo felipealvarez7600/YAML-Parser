@@ -6,6 +6,7 @@ import org.cojen.maker.Variable
 import pt.isel.interfaces.YamlParser
 import java.lang.reflect.Modifier
 import java.lang.reflect.Parameter
+import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
@@ -56,7 +57,6 @@ open class YamlParserCojen<T : Any>(
     @OptIn(ExperimentalStdlibApi::class)
     private fun buildYamlParser() : ClassMaker {
         // isto vai ter que ser alterado para ir buscar os parametros do construtor que sejam realmente necessarios
-        val parameters = type.java.constructors.first { it.parameters.size == nrOfInitArgs }.parameters
         val className = parserName(type, nrOfInitArgs)
 
         // Criar a classe com o nome certo e extender a classe YamlParserCojen
@@ -93,6 +93,7 @@ open class YamlParserCojen<T : Any>(
             newInstanceMethod.return_(newValue)
             return classMaker
         }
+        val parameters = type.java.constructors.first { it.parameters.size == nrOfInitArgs }.parameters
         parameters.forEach { param ->
             val paramName = param.name
             val value = args.invoke("get", paramName)
@@ -118,6 +119,11 @@ open class YamlParserCojen<T : Any>(
                 String::class.java -> value.cast(String::class.java)
 
                 List::class.java -> {
+                    val listType = param.parameterizedType as ParameterizedType
+                    val elementType = listType.actualTypeArguments[0] as Class<*>
+                    val listValues = mutableListOf<Any>()
+                    val yamlParserNew = newInstanceMethod.invoke("yamlParser", elementType)
+                    val list = value.cast(List::class.java)
                     TODO()
                 }
 
