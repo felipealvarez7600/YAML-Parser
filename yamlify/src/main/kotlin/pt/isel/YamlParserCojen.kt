@@ -1,16 +1,9 @@
 package pt.isel
 
 import org.cojen.maker.ClassMaker
-import org.cojen.maker.MethodMaker
 import org.cojen.maker.Variable
-import pt.isel.interfaces.YamlParser
-import java.lang.reflect.Modifier
-import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 import kotlin.reflect.KClass
-import kotlin.reflect.cast
-import kotlin.reflect.javaType
 
 /**
  * A YamlParser that uses Cojen Maker to generate a parser.
@@ -80,7 +73,7 @@ open class YamlParserCojen<T : Any>(
         val newInstanceMethod = classMaker.addMethod(Any::class.java, "newInstance", Map::class.java).public_().override()
         val args = newInstanceMethod.param(0)
 
-        val constructorArgs = mutableListOf<Any>()
+        val constructorArgs = mutableListOf<Variable>()
         if(nrOfInitArgs == 0){
             val primitiveValue = args.invoke("get", "#")
             val newValue = if(type.java.isPrimitive) {
@@ -121,14 +114,14 @@ open class YamlParserCojen<T : Any>(
                 List::class.java -> {
                     val listType = param.parameterizedType as ParameterizedType
                     val elementType = listType.actualTypeArguments[0] as Class<*>
-                    val listValues = mutableListOf<Any>()
+                    val listValues = newInstanceMethod.`var`(List::class.java)
                     val yamlParserNew = newInstanceMethod.invoke("yamlParser", elementType)
                     val listIterator = value.cast(List::class.java).invoke("iterator")
                     val loopStart = newInstanceMethod.label().here()
                     val loopEnd = newInstanceMethod.label()
                     listIterator.invoke("hasNext").ifFalse(loopEnd)
                     val listValue = listIterator.invoke("next")
-                    yamlParserNew.invoke("newInstance", listValue.cast(Map::class.java)).let { listValues.add(it.cast(elementType)) }
+                    yamlParserNew.invoke("newInstance", listValue.cast(Map::class.java)).let { listValues.invoke("add", it.cast(elementType))}
                     newInstanceMethod.goto_(loopStart)
                     loopEnd.here()
                     listValues
