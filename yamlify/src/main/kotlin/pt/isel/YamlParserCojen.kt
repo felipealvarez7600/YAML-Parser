@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier
 import java.lang.reflect.Parameter
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
+import kotlin.reflect.cast
 import kotlin.reflect.javaType
 
 /**
@@ -43,6 +44,8 @@ open class YamlParserCojen<T : Any>(
      */
     override fun <T : Any> yamlParser(type: KClass<T>) = YamlParserCojen.yamlParser(type)
 
+    fun<T : Any> yamlParser(type: Class<T>) = YamlParserCojen.yamlParser(type.kotlin)
+
     /**
      * Do not change this method in YamlParserCojen.
      */
@@ -53,7 +56,7 @@ open class YamlParserCojen<T : Any>(
     @OptIn(ExperimentalStdlibApi::class)
     private fun buildYamlParser() : ClassMaker {
         // isto vai ter que ser alterado para ir buscar os parametros do construtor que sejam realmente necessarios
-        val parameters = type.constructors.first().parameters.take(nrOfInitArgs)
+        val parameters = type.java.constructors.first { it.parameters.size == nrOfInitArgs }.parameters
         val className = parserName(type, nrOfInitArgs)
 
         // Criar a classe com o nome certo e extender a classe YamlParserCojen
@@ -93,7 +96,7 @@ open class YamlParserCojen<T : Any>(
         parameters.forEach { param ->
             val paramName = param.name
             val value = args.invoke("get", paramName)
-            val newValue = when (param.type.javaType) {
+            val newValue = when (param.type) {
                 Int::class.java -> newInstanceMethod.`var`(Int::class.java)
                     .invoke("valueOf", value.cast(String::class.java))
 
@@ -120,11 +123,8 @@ open class YamlParserCojen<T : Any>(
 
                 // O else deveria ser quando ele chega no caso do Address ou outros objectos
                 else -> {
-                    val valueMap = value.cast(Map::class.java)
-                    val yamlParser = yamlParser(param.type.classifier as KClass<*>)
-                    val newObject = newInstanceMethod.new_(yamlParser.javaClass)
-                    newObject.invoke("newInstance", valueMap)
-
+                    val classifier = param.type
+                    newInstanceMethod.invoke("yamlParser", classifier).invoke("newInstance", value.cast(Map::class.java)).cast(classifier)
                 }
             }
             constructorArgs.add(newValue)

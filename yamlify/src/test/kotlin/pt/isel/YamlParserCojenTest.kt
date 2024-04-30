@@ -2,6 +2,7 @@ package pt.isel
 
 import pt.isel.test.Classroom
 import pt.isel.test.Student
+import pt.isel.test.StudentWithAddress
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -29,7 +30,7 @@ class YamlParserCojenTest {
                   nr: 78
                   city: Lisbon
                 from: Oleiros"""
-        val st = YamlParserCojen.yamlParser(Student::class, 4).parseObject(yaml.reader())
+        val st = YamlParserCojen.yamlParser(StudentWithAddress::class, 4).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
         assertEquals(873435, st.nr)
         assertEquals("Oleiros", st.from)
