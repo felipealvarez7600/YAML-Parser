@@ -3,6 +3,7 @@ package pt.isel
 import pt.isel.interfaces.YamlParser
 import java.io.Reader
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 
 abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlParser<T> {
     /**
@@ -21,9 +22,9 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      */
     final override fun parseObject(yaml: Reader): T {
         val yamlLinesList = yaml.readLines().toMutableList()
-        if (yamlLinesList.isEmpty()) throw IllegalArgumentException("Empty yaml")
-        val iteration = iterateOverObject(yamlLinesList, -1)
-        return newInstance(iteration)
+        require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
+        val iteration = iterateOverObject(yamlLinesList, -1, 0)
+        return newInstance(iteration.first)
     }
 
     /**
@@ -31,43 +32,38 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * The function is recursive and calls itself when it finds a new object inside the object.
      * The function also calls the iterateOverList function when it finds a list inside the object.
      */
-    private fun iterateOverObject(yamlLinesList: MutableList<String>, indentCounter: Int) : Map<String, Any> {
+    private fun iterateOverObject(yamlLinesList: MutableList<String>, indentCounter: Int, lineIndex: Int) : Pair<Map<String, Any>, Int> {
         val map = mutableMapOf<String, Any>()
-        val possibleList = mutableListOf<String>()
-        while (yamlLinesList.isNotEmpty()) {
-            val line = yamlLinesList.removeAt(0)
+        var index = lineIndex
+        while(index < yamlLinesList.size){
+            val line = yamlLinesList[index++]
             // Skip empty lines
-            if (line.isBlank() || line.isEmpty()) continue
-            val indentCounterNew = line.takeWhile { it == ' ' }.length
+            if (line.isBlank()) continue
+            val indentCounterNew = line.indexOfFirst { it != ' ' }
             // If the indentCounterNew is less than the indentCounter it means that the object has ended.
-            if (indentCounterNew <= indentCounter) {
-                yamlLinesList.add(0, line)
+            if (indentCounterNew < indentCounter) {
                 break
             }
-
             val (key, value) = line.split(":").map { it.trim() }
-
-            // Check if the value is empty or blank, if it is, it means that it's a normal pair to add to the map or list.
-            if (value.isBlank() || value.isEmpty()) {
-                // Check if the value is a list or an object.
-                if(yamlLinesList.first().contains("-")) {
-                    val currentListIndent = yamlLinesList.first().takeWhile { it == ' ' }.length
-                    // Iterate over the lines to get the complete list.
-                    while(yamlLinesList.isNotEmpty() && currentListIndent <= yamlLinesList.first().takeWhile { it == ' ' }.length) {
-                        possibleList.add(yamlLinesList.removeAt(0))
-                    }
-                    val list = iterateOverList(possibleList)
-                    map[key] = list
-                } else {
-                    val newValue = iterateOverObject(yamlLinesList, indentCounterNew)
-                    map[key] = newValue
-                    yamlLinesList.drop(newValue.size)
-                }
-            } else {
+            // Check if the value is blank, if it isn't, it means that it's a normal pair to add to the map.
+            if(value.isNotBlank()){
                 map[key] = value
+            } else {
+                val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
+                // Check if the value is a list or an object.
+                if(!yamlLinesList[index].contains("-")){
+                    val newValue = iterateOverObject(yamlLinesList, currentIndent, index)
+                    index = newValue.second - 1
+                    map[key] = newValue.first
+                } else {
+                    val list = iterateOverList(yamlLinesList, currentIndent, index)
+                    index = if(yamlLinesList.size > list.second) list.second - 1 else list.second
+                    map[key] = list.first
+                }
+
             }
         }
-        return map
+        return map to index
     }
 
     /**
@@ -76,37 +72,34 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      */
     override fun parseList(yaml: Reader): List<T> {
         val yamlLinesList = yaml.readLines().toMutableList()
-        val finalList = iterateOverList(yamlLinesList)
-        // If it's a map then call the newInstance function to create the object and if not just return the value as T.
-        return finalList.map { newInstance(it as Map<String, Any>) }
+        return iterateOverList(yamlLinesList, -1, 0).first.map { newInstance(it) }
+
     }
 
     /**
      * Function that iterates over the yaml list and creates a list of Any.
      * The function calls the iterateOverObject function when it finds a new object inside the list.
      */
-    private fun iterateOverList(yamlLinesList: MutableList<String>) : List<Any> {
-        val newObject = mutableListOf<String>()
-        val finalList = mutableListOf<Any>()
-        while(yamlLinesList.isNotEmpty()) {
-            val line = yamlLinesList.removeAt(0)
-            // If the line does not contain "-" skip it since it's not a list.
-            if(line.contains("-")) {
-                val indentCounterNew = line.takeWhile { it == ' ' }.length
+    private fun iterateOverList(yamlLinesList: MutableList<String>, indentCounter: Int, lineIndex:Int) : Pair<List<Map<String, Any>>, Int> {
+        val finalList = mutableListOf<Map<String, Any>>()
+        var index = lineIndex
+        while(index < yamlLinesList.size){
+            val line = yamlLinesList[index++]
+            // Skip empty lines
+            if (line.isBlank()) continue
+            val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
+            if(currentIndent < indentCounter) break
+            if(line.contains("-")){
                 val value = line.split("-").last().trim()
-                // Check if the value is empty or blank, if it is, it means that it's a new object and if not it's a simple value.
-                if(value.isBlank() || value.isEmpty()) {
-                    // Iterate over the lines to get the complete object.
-                    while (indentCounterNew < yamlLinesList.first().takeWhile { it == ' ' }.length){
-                        newObject.add(yamlLinesList.removeAt(0))
-                        if (yamlLinesList.isEmpty()) break
-                    }
-                    // Call the iterateOverObject function to get the object and add it to the list
-                    val obj = iterateOverObject(newObject, -1)
-                    finalList.add(obj)
-                } else finalList.add(mapOf("#" to value))
+                if(value.isNotBlank()){
+                    finalList.add(mapOf("#" to value))
+                } else {
+                    val obj = iterateOverObject(yamlLinesList, currentIndent, index)
+                    index = if(yamlLinesList.size > obj.second) obj.second - 1 else obj.second
+                    finalList.add(obj.first)
+                }
             }
         }
-        return finalList
+        return finalList to index
     }
 }
