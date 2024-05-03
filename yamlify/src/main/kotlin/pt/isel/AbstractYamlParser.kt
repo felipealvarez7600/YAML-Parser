@@ -3,7 +3,6 @@ package pt.isel
 import pt.isel.interfaces.YamlParser
 import java.io.Reader
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.seconds
 
 abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlParser<T> {
     /**
@@ -44,7 +43,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             if (indentCounterNew < indentCounter) {
                 break
             }
-            val (key, value) = line.split(":").map { it.trim() }
+            val (key, value) = line.split(":").map { it.quickTrim() }
             // Check if the value is blank, if it isn't, it means that it's a normal pair to add to the map.
             if(value.isNotBlank()){
                 map[key] = value
@@ -90,7 +89,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
             if(currentIndent < indentCounter) break
             if(line.contains("-")){
-                val value = line.split("-").last().trim()
+                val value = line.split("-").last().quickTrim()
                 if(value.isNotBlank()){
                     finalList.add(mapOf("#" to value))
                 } else {
@@ -101,5 +100,13 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             }
         }
         return finalList to index
+    }
+
+    private fun String.quickTrim() : String {
+        var start = 0
+        var end = length
+        while (start < end && this[start] == ' ') start++
+        while (end > start && this[end - 1] == ' ') end--
+        return substring(start, end)
     }
 }
