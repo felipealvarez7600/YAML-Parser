@@ -18,6 +18,4 @@ class NewStudent @JvmOverloads constructor (
     val birth: LocalDate? = null,
     @YamlConvert(YamlAny::class)
     val details: Details? = null,
-    @YamlConvert(YamlAny::class)
-    val url: UrlComponents? = null
 )

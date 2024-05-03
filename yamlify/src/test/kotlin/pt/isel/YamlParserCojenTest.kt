@@ -1,8 +1,6 @@
 package pt.isel
 
-import pt.isel.test.Classroom
-import pt.isel.test.Student
-import pt.isel.test.StudentWithAddress
+import pt.isel.test.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -187,5 +185,24 @@ class YamlParserCojenTest {
         assertEquals(18, g5.classification)
         assertFalse { grades2.hasNext() }
         assertFalse { seq.hasNext() }
+    }
+
+    @Test
+    fun parseStudentWithAnnotation(){
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                address:
+                  street: Rua Rosa
+                  nr: 78
+                  city: Lisbon
+                city of birth: Oleiros"""
+        val st = YamlParserCojen.yamlParser(StudentYaml::class, 4).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals("Rua Rosa", st.address?.street)
+        assertEquals(78, st.address?.nr)
+        assertEquals("Lisbon", st.address?.city)
     }
 }

@@ -2,6 +2,7 @@ package pt.isel
 
 import org.cojen.maker.ClassMaker
 import org.cojen.maker.Variable
+import pt.isel.annotations.YamlArg
 import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass
 
@@ -95,7 +96,7 @@ open class YamlParserCojen<T : Any>(
         }
         val parameters = type.java.constructors.first { it.parameters.size == nrOfInitArgs }.parameters
         parameters.forEach { param ->
-            val paramName = param.name
+            val paramName = if(param.getAnnotation(YamlArg::class.java) != null) param.getAnnotation(YamlArg::class.java).paramName else param.name
             val value = args.invoke("get", paramName)
             val newValue = when (param.type) {
                 Int::class.java, Long::class.java, Double::class.java,

@@ -28,7 +28,7 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             Char::class to { str -> str.toString().first() },
             Boolean::class to { str -> str.toString().toBoolean() },
         )
-        constructor = type.primaryConstructor ?: throw IllegalArgumentException("No primary constructor found, type is $type")
+        constructor = type.constructors.first()
         allParametersOfType = constructor.parameters/*.filter { it.name != null || it.findAnnotation<YamlArg>() != null }*/
         parametersBuilders = allParametersOfType.associate {
             val paramName = it.findAnnotation<YamlArg>()?.paramName ?: it.name ?: throw IllegalArgumentException("Parameter name not found")

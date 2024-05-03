@@ -21,7 +21,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * The function just passes the yaml to a mutable List and calls the iterateOverObject function to handle the parsing and finally calls the newInstance.
      */
     final override fun parseObject(yaml: Reader): T {
-        val yamlLinesList = yaml.readLines().toMutableList()
+        val yamlLinesList = yaml.readLines()
         require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
         val iteration = iterateOverObject(yamlLinesList, -1, 0)
         return newInstance(iteration.first)
@@ -32,7 +32,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * The function is recursive and calls itself when it finds a new object inside the object.
      * The function also calls the iterateOverList function when it finds a list inside the object.
      */
-    private fun iterateOverObject(yamlLinesList: MutableList<String>, indentCounter: Int, lineIndex: Int) : Pair<Map<String, Any>, Int> {
+    private fun iterateOverObject(yamlLinesList: List<String>, indentCounter: Int, lineIndex: Int) : Pair<Map<String, Any>, Int> {
         val map = mutableMapOf<String, Any>()
         var index = lineIndex
         while(index < yamlLinesList.size){
@@ -71,7 +71,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * The function passes the yaml to a mutable List and calls the iterateOverList function to handle the parsing.
      */
     override fun parseList(yaml: Reader): List<T> {
-        val yamlLinesList = yaml.readLines().toMutableList()
+        val yamlLinesList = yaml.readLines()
         return iterateOverList(yamlLinesList, -1, 0).first.map { newInstance(it) }
 
     }
@@ -80,7 +80,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
      * Function that iterates over the yaml list and creates a list of Any.
      * The function calls the iterateOverObject function when it finds a new object inside the list.
      */
-    private fun iterateOverList(yamlLinesList: MutableList<String>, indentCounter: Int, lineIndex:Int) : Pair<List<Map<String, Any>>, Int> {
+    private fun iterateOverList(yamlLinesList: List<String>, indentCounter: Int, lineIndex:Int) : Pair<List<Map<String, Any>>, Int> {
         val finalList = mutableListOf<Map<String, Any>>()
         var index = lineIndex
         while(index < yamlLinesList.size){
