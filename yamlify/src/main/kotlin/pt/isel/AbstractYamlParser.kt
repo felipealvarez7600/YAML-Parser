@@ -49,13 +49,14 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             if(value.isNotBlank()){
                 map[key] = value
             } else {
-                val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
                 // Check if the value is a list or an object.
                 if(!yamlLinesList[index].contains("-")){
+                    val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
                     val newValue = iterateOverObject(yamlLinesList, currentIndent, index)
                     index = newValue.second - 1
                     map[key] = newValue.first
                 } else {
+                    val currentIndent = yamlLinesList[index + 1].indexOfFirst { it != ' ' }
                     val list = iterateOverList(yamlLinesList, currentIndent, index)
                     index = if(yamlLinesList.size > list.second) list.second - 1 else list.second
                     map[key] = list.first
