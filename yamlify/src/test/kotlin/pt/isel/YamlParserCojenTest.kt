@@ -205,4 +205,25 @@ class YamlParserCojenTest {
         assertEquals(78, st.address?.nr)
         assertEquals("Lisbon", st.address?.city)
     }
+
+    @Test
+    fun parseAnnotationConvert() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                city of birth: Oleiros
+                details:
+                    age: 16
+                    height: 162
+                    asFinished: false
+            """
+        val st = YamlParserCojen.yamlParser(NewStudent::class, 4).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(16, st.details?.age)
+        assertEquals(162, st.details?.height)
+        assertEquals(null, st.details?.year)
+        assertEquals(false, st.details?.asFinished)
+    }
 }
