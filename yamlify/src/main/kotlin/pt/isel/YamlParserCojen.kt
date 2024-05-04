@@ -94,9 +94,17 @@ open class YamlParserCojen<T : Any>(
                 param.isAnnotationPresent(YamlConvert::class.java) -> {
                     val yamlConvertAnnotation = param.getAnnotation(YamlConvert::class.java)
                     val parserClass = yamlConvertAnnotation.parser
-                    val parserInstance = parserClass.createInstance()
+//                    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
+//                        return when (parserClass) {
+//                            YamlAny::class -> YamlAny()
+//                            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
+//                        }
+//                    }
+                    val parser = instantiateCustomParser(parserClass)
+                    val parserConvert = newInstanceMethod.`var`(parser)
+                        .invoke("convert", value.cast(String::class.java), paramName)
                     //para corrigir->>>
-                    parserInstance.convert(value.toString(), value.toString())
+                    // parserInstance.convert(value.toString(), paramName)
                 }
                 param.type == Int::class.java || param.type == Long::class.java || param.type == Double::class.java || param.type == Float::class.java || param.type == Short::class.java || param.type == Byte::class.java || param.type == Boolean::class.java || param.type == Char::class.java -> {
                     newInstanceMethod.`var`(param.type)
@@ -120,6 +128,13 @@ open class YamlParserCojen<T : Any>(
         val constructorCall = newInstanceMethod.new_(type.java, *constructorArgs.toTypedArray())
         newInstanceMethod.return_(constructorCall)
         return classMaker
+    }
+
+    private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
+        return when (parserClass) {
+            YamlAny::class -> YamlAny()
+            else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
+        }
     }
 
 }
