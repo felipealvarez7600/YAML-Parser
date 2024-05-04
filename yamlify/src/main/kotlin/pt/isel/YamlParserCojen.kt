@@ -100,6 +100,13 @@ open class YamlParserCojen<T : Any>(
         parameters.forEach { param ->
             val paramName = if(param.getAnnotation(YamlArg::class.java) != null) param.getAnnotation(YamlArg::class.java).paramName else param.name
             val value = args.invoke("get", paramName)
+            val annotation = param.getAnnotation(YamlConvert::class.java)
+            if(annotation != null) {
+                val newValue = newInstanceMethod.new_(annotation.parser.java).invoke("convert", value.invoke("toString"), paramName)
+                constructorArgs.add(newValue.cast(param.type))
+                return@forEach
+            }
+
             val newValue = when (param.type) {
                 Int::class.java, Long::class.java, Double::class.java,
                 Float::class.java, Short::class.java, Byte::class.java,

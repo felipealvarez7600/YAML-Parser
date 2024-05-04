@@ -227,13 +227,13 @@ class YamlParserCojenTest {
                     subject: PC
                     classification: 19
                 birth:
-                    year: 2004
-                    month: 05
-                    day: 26
+                  year: 2004
+                  month: 05
+                  day: 26
                 details:
-                    age: 16
-                    height: 162
-                    asFinished: false
+                  age: 16
+                  height: 162
+                  asFinished: false
             """
         val st = YamlParserCojen.yamlParser(NewStudent::class, 7).parseObject(yaml.reader())
         assertEquals("Maria Candida", st.name)
