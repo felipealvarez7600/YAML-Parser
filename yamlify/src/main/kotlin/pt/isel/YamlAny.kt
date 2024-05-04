@@ -4,43 +4,43 @@ import pt.isel.interfaces.IYamlAny
 import java.net.URI
 import java.time.LocalDate
 
-class YamlAny : IYamlAny {
-    override fun convert(input: String, typeName: String): Any? {
-        return when (typeName) {
-            "birth" -> LocalDate.parse(input.drop(1).dropLast(1).split(", ").joinToString("-") { it.split("=")[1] })
-            "url" -> {
-                println(input)
-                val uri = URI(input)
-                val url = uri.toURL()
-                return UrlComponents(
-                    protocol = uri.scheme,
-                    host = uri.host,
-                    port = uri.port.takeIf { it != -1 } ?: url.defaultPort,
-                    path = uri.path,
-                    query = uri.query,
-                    ref = uri.fragment
-                )
-            }
-            "details" -> {
-                val subjectsMap = mutableMapOf<String, Any?>()
-                input.drop(1).dropLast(1).split(", ").forEach { entry ->
-                    val keyValue = entry.split("=")
-                    val key = keyValue[0]
-                    val value = if (key != "asFinished") keyValue[1].toIntOrNull() else keyValue[1].toBoolean()
-                    subjectsMap[key] = value
-                }
+class YamlToDate : IYamlAny<LocalDate> {
+    override fun convert(input: String, typeName: String) : LocalDate {
+        return LocalDate.parse(input.drop(1).dropLast(1).split(", ").joinToString("-") { it.split("=")[1] })
+    }
+}
 
-                return Details(
-                    age = subjectsMap["age"] as Int?,
-                    height = subjectsMap["height"] as Int?,
-                    year = subjectsMap["year"] as Int?,
-                    asFinished = subjectsMap["asFinished"] as Boolean?,
-                )
-            }
-
-
-            else -> null
+class YamlToDetails : IYamlAny<Details> {
+    override fun convert(input: String, typeName: String) : Details {
+        val subjectsMap = mutableMapOf<String, Any?>()
+        input.drop(1).dropLast(1).split(", ").forEach { entry ->
+            val keyValue = entry.split("=")
+            val key = keyValue[0]
+            val value = if (key != "asFinished") keyValue[1].toIntOrNull() else keyValue[1].toBoolean()
+            subjectsMap[key] = value
         }
+
+        return Details(
+            age = subjectsMap["age"] as Int?,
+            height = subjectsMap["height"] as Int?,
+            year = subjectsMap["year"] as Int?,
+            asFinished = subjectsMap["asFinished"] as Boolean?,
+        )
+    }
+}
+
+class YamlToUrlComponents : IYamlAny<UrlComponents> {
+    override fun convert(input: String, typeName: String) : UrlComponents {
+        val uri = URI(input)
+        val url = uri.toURL()
+        return UrlComponents(
+            protocol = uri.scheme,
+            host = uri.host,
+            port = uri.port.takeIf { it != -1 } ?: url.defaultPort,
+            path = uri.path,
+            query = uri.query,
+            ref = uri.fragment
+        )
     }
 }
 

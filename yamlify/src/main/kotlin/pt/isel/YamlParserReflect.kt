@@ -2,12 +2,11 @@ package pt.isel
 
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
+import pt.isel.interfaces.IYamlAny
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.primaryConstructor
-
 /**
  * A YamlParser that uses reflection to parse objects.
  */
@@ -114,9 +113,11 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             }
         }
 
-        private fun instantiateCustomParser(parserClass: KClass<out Any>): YamlAny {
+        private fun instantiateCustomParser(parserClass: KClass<out Any>): IYamlAny<out Any> {
             return when (parserClass) {
-                YamlAny::class -> YamlAny()
+                YamlToDate::class -> YamlToDate()
+                YamlToDetails::class -> YamlToDetails()
+                YamlToUrlComponents::class -> YamlToUrlComponents()
                 else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
             }
         }
