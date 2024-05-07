@@ -381,6 +381,48 @@ class YamlParserReflectTest {
         assertEquals(false, st.details?.asFinished)
     }
 
+    @Test
+    fun parseAnnotationConvert() {
+        val yaml = """
+                name: Maria Candida
+                nr: 873435
+                city of birth: Oleiros
+                address:
+                  street: Rua Rosa
+                  nr: 78
+                  city: Lisbon
+                grades:
+                  - 
+                    subject: LAE
+                    classification: 18
+                  -
+                    subject: PDM
+                    classification: 15
+                  -
+                    subject: PC
+                    classification: 19
+                birth:
+                  year: 2004
+                  month: 05
+                  day: 26
+                details:
+                  age: 16
+                  height: 162
+                  asFinished: false
+            """
+        val st = YamlParserReflect.yamlParser(NewStudent::class).parseObject(yaml.reader())
+        assertEquals("Maria Candida", st.name)
+        assertEquals(873435, st.nr)
+        assertEquals("Oleiros", st.from)
+        assertEquals(26, st.birth?.dayOfMonth)
+        assertEquals(5, st.birth?.month?.value)
+        assertEquals(2004, st.birth?.year)
+        assertEquals(16, st.details?.age)
+        assertEquals(162, st.details?.height)
+        assertEquals(null, st.details?.year)
+        assertEquals(false, st.details?.asFinished)
+    }
+
 //    @Test
 //    fun parseURLWithAnnotation() {
 //        val yaml = """

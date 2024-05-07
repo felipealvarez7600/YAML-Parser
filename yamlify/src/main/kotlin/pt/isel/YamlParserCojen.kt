@@ -3,8 +3,10 @@ package pt.isel
 import org.cojen.maker.ClassMaker
 import org.cojen.maker.Variable
 import pt.isel.annotations.YamlArg
+import pt.isel.annotations.YamlConvert
 import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 
 /**
  * A YamlParser that uses Cojen Maker to generate a parser.
@@ -98,6 +100,13 @@ open class YamlParserCojen<T : Any>(
         parameters.forEach { param ->
             val paramName = if(param.getAnnotation(YamlArg::class.java) != null) param.getAnnotation(YamlArg::class.java).paramName else param.name
             val value = args.invoke("get", paramName)
+            val annotation = param.getAnnotation(YamlConvert::class.java)
+            if(annotation != null) {
+                val newValue = newInstanceMethod.new_(annotation.parser.java).invoke("convert", value.invoke("toString"), paramName)
+                constructorArgs.add(newValue.cast(param.type))
+                return@forEach
+            }
+
             val newValue = when (param.type) {
                 Int::class.java, Long::class.java, Double::class.java,
                 Float::class.java, Short::class.java, Byte::class.java,
@@ -136,6 +145,5 @@ open class YamlParserCojen<T : Any>(
         newInstanceMethod.return_(constructorCall)
         return classMaker
     }
-
 }
 

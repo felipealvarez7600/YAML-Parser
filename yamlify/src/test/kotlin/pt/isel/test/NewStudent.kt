@@ -2,7 +2,8 @@ package pt.isel.test
 
 import pt.isel.Details
 import pt.isel.UrlComponents
-import pt.isel.YamlAny
+import pt.isel.YamlToDate
+import pt.isel.YamlToDetails
 import pt.isel.annotations.YamlArg
 import pt.isel.annotations.YamlConvert
 import java.time.LocalDate
@@ -14,8 +15,8 @@ class NewStudent @JvmOverloads constructor (
     val from: String,
     val address: Address? = null,
     val grades: List<Grade> = emptyList(),
-    @YamlConvert(YamlAny::class)
+    @YamlConvert(YamlToDate::class)
     val birth: LocalDate? = null,
-    @YamlConvert(YamlAny::class)
+    @YamlConvert(YamlToDetails::class)
     val details: Details? = null,
 )

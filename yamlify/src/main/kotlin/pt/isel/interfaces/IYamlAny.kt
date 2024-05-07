@@ -1,6 +1,6 @@
 package pt.isel.interfaces
 
-interface IYamlAny {
-    fun convert(input: String, typeName: String): Any?
+interface IYamlAny<T> {
+    fun convert(input: String, typeName: String): T?
 
 }
