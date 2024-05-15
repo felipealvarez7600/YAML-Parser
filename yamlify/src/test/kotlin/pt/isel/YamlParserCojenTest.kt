@@ -248,4 +248,125 @@ class YamlParserCojenTest {
         assertEquals(false, st.details?.asFinished)
 
     }
+
+    @Test
+    fun parseSequenceOfStudents1() {
+        val yaml = """
+            - 
+              name: Maria Candida
+              nr: 873435
+              from: Oleiros
+            - 
+              name: Jose Carioca
+              nr: 1214398
+              from: Tamega
+        """
+        val seq =
+            YamlParserCojen.yamlParser(Student::class, 3)
+                .parseSequence(yaml.reader())
+                .iterator()
+        val st1 = seq.next()
+        assertEquals("Maria Candida", st1.name)
+        assertEquals(873435, st1.nr)
+        assertEquals("Oleiros", st1.from)
+        val st2 = seq.next()
+        assertEquals("Jose Carioca", st2.name)
+        assertEquals(1214398, st2.nr)
+        assertEquals("Tamega", st2.from)
+    }
+
+    @Test
+    fun parseSequenceOfStudentsWithConvertCount() {
+        val yaml = yamlSequenceOfStudentsWithThings
+        val seq = YamlParserCojen.yamlParser(NewStudent::class, 7)
+            .parseSequence(yaml.reader())
+            .iterator()
+
+        assertEquals(0, YamlToDetails.count)
+        assertEquals(0, YamlToDate.count)
+
+        val st1 = seq.next()
+        assertEquals("Maria Candida", st1.name)
+        assertEquals(873435, st1.nr)
+        assertEquals("Oleiros", st1.from)
+        assertEquals(26, st1.birth?.dayOfMonth)
+        assertEquals(5, st1.birth?.month?.value)
+        assertEquals(2004, st1.birth?.year)
+        assertEquals(16, st1.details?.age)
+        assertEquals(162, st1.details?.height)
+        assertEquals(false, st1.details?.asFinished)
+
+        assertEquals(1, YamlToDetails.count)
+        assertEquals(1, YamlToDate.count)
+
+        val st2 = seq.next()
+        assertEquals("Antonio Candida", st2.name)
+        assertEquals(456758, st2.nr)
+        assertEquals("Santo Amaro", st2.from)
+        assertEquals(23, st2.birth?.dayOfMonth)
+        assertEquals(10, st2.birth?.month?.value)
+        assertEquals(2007, st2.birth?.year)
+        assertEquals(56, st2.details?.age)
+        assertEquals(135, st2.details?.height)
+        assertEquals(true, st2.details?.asFinished)
+
+        assertEquals(2, YamlToDetails.count)
+        assertEquals(2, YamlToDate.count)
+
+    }
+
+    private val yamlSequenceOfStudentsWithThings = """
+            - 
+              name: Maria Candida
+              nr: 873435
+              city of birth: Oleiros
+              address:
+                street: Rua Rosa
+                nr: 78
+                city: Lisbon
+              grades:
+                - 
+                  subject: LAE
+                  classification: 18
+                -
+                  subject: PDM
+                  classification: 15
+                -
+                  subject: PC
+                  classification: 19
+              birth:
+                year: 2004
+                month: 05
+                day: 26
+              details:
+                age: 16
+                height: 162
+                asFinished: false
+            - 
+              name: Antonio Candida
+              nr: 456758
+              city of birth: Santo Amaro
+              address:
+                street: Rua Rosa
+                nr: 78
+                city: Lisboa
+              grades:
+                - 
+                  subject: LAE
+                  classification: 18
+                -
+                  subject: PDM
+                  classification: 15
+                -
+                  subject: PC
+                  classification: 19
+              birth:
+                year: 2007
+                month: 10
+                day: 23
+              details:
+                age: 56
+                height: 135
+                asFinished: true
+        """.trimIndent()
 }

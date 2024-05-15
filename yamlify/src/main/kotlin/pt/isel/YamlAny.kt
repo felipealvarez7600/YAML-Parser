@@ -5,13 +5,21 @@ import java.net.URI
 import java.time.LocalDate
 
 class YamlToDate : IYamlAny<LocalDate> {
+    companion object {
+        var count = 0
+    }
     override fun convert(input: String, typeName: String) : LocalDate {
+        count++
         return LocalDate.parse(input.drop(1).dropLast(1).split(", ").joinToString("-") { it.split("=")[1] })
     }
 }
 
 class YamlToDetails : IYamlAny<Details> {
+    companion object {
+        var count = 0
+    }
     override fun convert(input: String, typeName: String) : Details {
+        count++
         val subjectsMap = mutableMapOf<String, Any?>()
         input.drop(1).dropLast(1).split(", ").forEach { entry ->
             val keyValue = entry.split("=")
@@ -30,7 +38,11 @@ class YamlToDetails : IYamlAny<Details> {
 }
 
 class YamlToUrlComponents : IYamlAny<UrlComponents> {
+    companion object {
+        var count = 0
+    }
     override fun convert(input: String, typeName: String) : UrlComponents {
+        count++
         val uri = URI(input)
         val url = uri.toURL()
         return UrlComponents(
