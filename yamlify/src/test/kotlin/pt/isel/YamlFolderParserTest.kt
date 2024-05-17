@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 class YamlFolderParserTest {
     @Test
     fun testParseFolderEager() {
-        val folderPath = "folder"
+        val folderPath = "resources/students"
         val parser = YamlParserReflect(Student::class)
         val folderParser = YamlFolderParser(parser)
 

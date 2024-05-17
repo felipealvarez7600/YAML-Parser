@@ -12,7 +12,7 @@ class YamlFolderParser<T : Any>(private val parser: AbstractYamlParser<T>) {
             } else {
                 null
             }
-        } ?: emptyList()
+        } ?: throw Exception("No Files Found")
     }
 
     fun parseFolderLazy(path: String): Sequence<T> {
