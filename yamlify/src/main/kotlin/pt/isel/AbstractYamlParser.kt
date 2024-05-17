@@ -106,18 +106,10 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             val yamlLinesList = yaml.readLines()
             require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
             require(yamlLinesList.any { it.trim().startsWith("-") }) { "YAML root element is not a list" }
-            var index = 0
-            while (index < yamlLinesList.size) {
-                val line = yamlLinesList[index]
-                if (line.trim().startsWith("-")) {
-                    val currentIndent = yamlLinesList[index + 1].indexOfFirst { it != ' ' }
-                    val (objMap, nextIndex) = iterateOverObject(yamlLinesList, currentIndent, index + 1)
-                    index = nextIndex - 1
-                    yield(newInstance(objMap))
-                } else {
-                    index++
-                }
-            }
+
+            val parsedList = iterateOverList(yamlLinesList, -1, 0).first
+
+            parsedList.forEach { yield(newInstance(it)) }
         }
 
 
