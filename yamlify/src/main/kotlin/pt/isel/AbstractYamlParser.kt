@@ -102,12 +102,10 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
         return finalList to index
     }
 
-    override fun parseSequence(yaml: Reader): Sequence<T> {
-        val yamlLinesList = yaml.readLines()
-        require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
-        require(yamlLinesList.any { it.trim().startsWith("-") }) { "YAML root element is not a list" }
-
-        return sequence {
+    override fun parseSequence(yaml: Reader): Sequence<T> = sequence {
+            val yamlLinesList = yaml.readLines()
+            require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
+            require(yamlLinesList.any { it.trim().startsWith("-") }) { "YAML root element is not a list" }
             var index = 0
             while (index < yamlLinesList.size) {
                 val line = yamlLinesList[index]
@@ -121,7 +119,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                 }
             }
         }
-    }
+
 
     private fun String.quickTrim() : String {
         var start = 0

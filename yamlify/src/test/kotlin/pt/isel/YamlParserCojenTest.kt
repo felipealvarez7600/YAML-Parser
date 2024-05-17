@@ -276,6 +276,48 @@ class YamlParserCojenTest {
     }
 
     @Test
+    fun parseSequenceOfStudentsWithoutConvertCount() {
+        val seq = YamlParserCojen.yamlParser(NewStudent::class, 7)
+            .parseList(yamlSequenceOfStudentsWithThings.reader())
+            .iterator()
+        assertStudentsInSequenceWithoutConvertCount(seq)
+    }
+
+    private fun assertStudentsInSequenceWithoutConvertCount(seq: Iterator<NewStudent>) {
+
+        assertEquals(0, YamlToDetails.count)
+        assertEquals(0, YamlToDate.count)
+
+        val st1 = seq.next()
+        assertEquals("Maria Candida", st1.name)
+        assertEquals(873435, st1.nr)
+        assertEquals("Oleiros", st1.from)
+        assertEquals(26, st1.birth?.dayOfMonth)
+        assertEquals(5, st1.birth?.month?.value)
+        assertEquals(2004, st1.birth?.year)
+        assertEquals(16, st1.details?.age)
+        assertEquals(162, st1.details?.height)
+        assertEquals(false, st1.details?.asFinished)
+
+        assertEquals(1, YamlToDetails.count)
+        assertEquals(1, YamlToDate.count)
+
+        val st2 = seq.next()
+        assertEquals("Antonio Candida", st2.name)
+        assertEquals(456758, st2.nr)
+        assertEquals("Santo Amaro", st2.from)
+        assertEquals(23, st2.birth?.dayOfMonth)
+        assertEquals(10, st2.birth?.month?.value)
+        assertEquals(2007, st2.birth?.year)
+        assertEquals(56, st2.details?.age)
+        assertEquals(135, st2.details?.height)
+        assertEquals(true, st2.details?.asFinished)
+
+        assertEquals(2, YamlToDetails.count)
+        assertEquals(2, YamlToDate.count)
+    }
+
+    @Test
     fun parseSequenceOfStudentsWithConvertCount() {
         val yaml = yamlSequenceOfStudentsWithThings
         val seq = YamlParserCojen.yamlParser(NewStudent::class, 7)
@@ -368,5 +410,57 @@ class YamlParserCojenTest {
                 age: 56
                 height: 135
                 asFinished: true
+            - 
+              name: Antonio Candida
+              nr: 456758
+              city of birth: Santo Amaro
+              address:
+                street: Rua Rosa
+                nr: 78
+                city: Lisboa
+              grades:
+                - 
+                  subject: LAE
+                  classification: 18
+                -
+                  subject: PDM
+                  classification: 15
+                -
+                  subject: PC
+                  classification: 19
+              birth:
+                year: 2007
+                month: 10
+                day: 23
+              details:
+                age: 56
+                height: 135
+                asFinished: true
+            - 
+              name: John Doe
+              nr: 123456
+              city of birth: New York
+              address:
+                street: Main Street
+                nr: 123
+                city: New York
+              grades:
+                - 
+                  subject: Math
+                  classification: 20
+                -
+                  subject: English
+                  classification: 19
+                -
+                  subject: Science
+                  classification: 18
+              birth:
+                year: 1990
+                month: 01
+                day: 01
+              details:
+                age: 31
+                height: 180
+                asFinished: false
         """.trimIndent()
 }
