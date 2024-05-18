@@ -55,6 +55,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
                     index = newValue.second - 1
                     map[key] = newValue.first
                 } else {
+
                     val currentIndent = yamlLinesList[index + 1].indexOfFirst { it != ' ' }
                     val list = iterateOverList(yamlLinesList, currentIndent, index)
                     index = if(yamlLinesList.size > list.second) list.second - 1 else list.second
@@ -72,7 +73,6 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
     override fun parseList(yaml: Reader): List<T> {
         val yamlLinesList = yaml.readLines()
         return iterateOverList(yamlLinesList, -1, 0).first.map { newInstance(it) }
-
     }
 
     /**
