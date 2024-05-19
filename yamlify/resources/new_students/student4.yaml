@@ -4,7 +4,7 @@ address:
   street: Rua Actor Vale
   nr: 14
   city: Lisbon
-from: Alameda
+city of birth: Alameda
 grades:
   -
     subject: LAE

@@ -1,6 +1,4 @@
 
-
-
 package pt.isel
 
 import org.junit.jupiter.api.BeforeEach

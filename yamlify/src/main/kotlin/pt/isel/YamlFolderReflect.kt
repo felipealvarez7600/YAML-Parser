@@ -21,7 +21,10 @@ class YamlFolderParser<T : Any>(private val parser: AbstractYamlParser<T>) {
         return sequence {
             folder.listFiles()?.forEach { file ->
                 if (file.isFile && file.extension == "yaml") {
-                    yield(parser.parseObject(file.reader()))
+                    val elements = parser.parseSequence(file.reader())
+                    for (element in elements) {
+                        yield(element)
+                    }
                 }
             }
         }

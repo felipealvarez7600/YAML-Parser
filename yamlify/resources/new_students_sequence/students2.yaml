@@ -1,0 +1,22 @@
+-
+  name: Pedro Ferreira
+  nr: 238992
+  city of birth: Covilhã
+-
+  name: Carlos Serra
+  nr: 203941
+  address:
+    street: Rua Actor Vale
+    nr: 14
+    city: Lisbon
+  city of birth: Alameda
+  grades:
+    -
+      subject: LAE
+      classification: 18
+    -
+      subject: PDM
+      classification: 15
+    -
+      subject: PC
+      classification: 19

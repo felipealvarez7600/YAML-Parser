@@ -1,3 +1,7 @@
 name: Maria Candida
 nr: 873435
+address:
+  street: Rua Rosa
+  nr: 78
+  city: Lisbon
 from: Oleiros

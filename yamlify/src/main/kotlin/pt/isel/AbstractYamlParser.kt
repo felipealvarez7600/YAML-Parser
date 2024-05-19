@@ -86,7 +86,8 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             val line = yamlLinesList[index++]
             // Skip empty lines
             if (line.isBlank()) continue
-            val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
+            val currentIndent = if(index != yamlLinesList.size) yamlLinesList[index].indexOfFirst { it != ' ' }
+            else yamlLinesList[index-1].indexOfFirst { it != ' ' }
             if(currentIndent < indentCounter) break
             if(line.contains("-")){
                 val value = line.split("-").last().quickTrim()

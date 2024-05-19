@@ -66,8 +66,8 @@ data class UrlComponents(
 )
 
 data class Details(
-    val age: Int?,
-    val height: Int?,
-    val year: Int?,
-    val asFinished: Boolean?
+    val age: Int? = null,
+    val height: Int? = null,
+    val year: Int? = null,
+    val asFinished: Boolean? = null
 )
