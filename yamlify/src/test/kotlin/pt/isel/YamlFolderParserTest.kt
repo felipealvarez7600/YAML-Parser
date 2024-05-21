@@ -183,7 +183,7 @@ class YamlFolderParserTest {
     @Test
     fun testFolderCojStudentAnnotationEager() {
         val folderPath = "resources/cojen/new_students"
-        val parser = YamlParserCojen.yamlParser(NewStudent::class)
+        val parser = YamlParserCojen.yamlParser(NewStudent::class, 7)
         val folderParser = YamlFolderParser(parser)
 
         val objects = folderParser.parseFolderEager(folderPath).iterator()
@@ -193,7 +193,7 @@ class YamlFolderParserTest {
     @Test
     fun testFolderCojStudentAnnotationLazy() {
         val folderPath = "resources/cojen/new_students_sequence"
-        val parser = YamlParserCojen.yamlParser(NewStudent::class)
+        val parser = YamlParserCojen.yamlParser(NewStudent::class, 7)
         val folderParser = YamlFolderParser(parser)
 
         val objects = folderParser.parseFolderLazy(folderPath).iterator()
