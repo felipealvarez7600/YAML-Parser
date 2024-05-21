@@ -1,17 +1,19 @@
 name: Carlos Serra
 nr: 203941
 address:
-  street: Rua Actor Vale
-  nr: 14
+  street: Rua Carlos Mardel
+  nr: 23
   city: Lisbon
-city of birth: Alameda
+from: Alameda
 grades:
   -
-    subject: LAE
-    classification: 18
-  -
-    subject: PDM
-    classification: 15
-  -
-    subject: PC
-    classification: 19
+    subject: LS
+    classification: 16
+birth:
+  year: 2003
+  month: 06
+  day: 09
+details:
+  age: 16
+  height: 168
+  asFinished: false
