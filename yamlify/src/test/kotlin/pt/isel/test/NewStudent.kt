@@ -1,7 +1,6 @@
 package pt.isel.test
 
 import pt.isel.Details
-import pt.isel.UrlComponents
 import pt.isel.YamlToDate
 import pt.isel.YamlToDetails
 import pt.isel.annotations.YamlArg

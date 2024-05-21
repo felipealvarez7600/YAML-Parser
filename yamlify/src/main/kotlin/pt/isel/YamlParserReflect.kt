@@ -117,7 +117,6 @@ class YamlParserReflect<T : Any>(private val type: KClass<T>) : AbstractYamlPars
             return when (parserClass) {
                 YamlToDate::class -> YamlToDate()
                 YamlToDetails::class -> YamlToDetails()
-                YamlToUrlComponents::class -> YamlToUrlComponents()
                 else -> throw IllegalArgumentException("Unknown custom parser class: $parserClass")
             }
         }

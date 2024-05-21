@@ -1,0 +1,11 @@
+name: Carlos Serra
+nr: 203941
+address:
+  street: Rua Carlos Mardel
+  nr: 23
+  city: Lisbon
+from: Alameda
+grades:
+  -
+    subject: LS
+    classification: 16

@@ -1,10 +1,5 @@
 package pt.isel.test
 
-import pt.isel.Details
-import pt.isel.UrlComponents
-import pt.isel.annotations.YamlConvert
-import java.time.LocalDate
-
 class Student @JvmOverloads constructor (
     val name: String,
     val nr: Int,

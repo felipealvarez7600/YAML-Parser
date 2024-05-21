@@ -1,0 +1,42 @@
+-
+  name: Jose Carioca
+  nr: 1214398
+  address:
+    street: Rua Doutor Barroso
+    nr: 13
+    city: Vila Real
+  from: Tamega
+  grades:
+    -
+      subject: AED
+      classification: 13
+    -
+      subject: PG
+      classification: 14
+    -
+      subject: ALGA
+      classification: 17
+-
+  name: Pedro Ferreira
+  nr: 238992
+  address:
+    street: Rua do Armiense
+    nr: 16
+    city: Castelo Branco
+  from: Covilhã
+  grades:
+    - subject: CD
+      classification: 10
+    - subject: TMD
+      classification: 19
+-
+  name: Carlos Serra
+  nr: 203941
+  address:
+    street: Rua Carlos Mardel
+    nr: 23
+    city: Lisbon
+  from: Alameda
+  grades:
+    - subject: LS
+      classification: 16

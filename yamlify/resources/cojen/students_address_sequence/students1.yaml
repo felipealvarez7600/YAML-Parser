@@ -1,0 +1,16 @@
+-
+  name: Maria Candida
+  nr: 873435
+  address:
+    street: Rua Rosa
+    nr: 78
+    city: Lisbon
+  from: Oleiros
+-
+  name: Jose Carioca
+  nr: 1214398
+  address:
+    street: Rua Doutor Barroso
+    nr: 13
+    city: Vila Real
+  from: Tamega

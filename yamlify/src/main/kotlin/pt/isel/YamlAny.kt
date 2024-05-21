@@ -37,34 +37,6 @@ class YamlToDetails : IYamlAny<Details> {
     }
 }
 
-class YamlToUrlComponents : IYamlAny<UrlComponents> {
-    companion object {
-        var count = 0
-    }
-    override fun convert(input: String, typeName: String) : UrlComponents {
-        count++
-        val uri = URI(input)
-        val url = uri.toURL()
-        return UrlComponents(
-            protocol = uri.scheme,
-            host = uri.host,
-            port = uri.port.takeIf { it != -1 } ?: url.defaultPort,
-            path = uri.path,
-            query = uri.query,
-            ref = uri.fragment
-        )
-    }
-}
-
-data class UrlComponents(
-    val protocol: String?,
-    val host: String?,
-    val port: Int?,
-    val path: String?,
-    val query: String?,
-    val ref: String?
-)
-
 data class Details(
     val age: Int? = null,
     val height: Int? = null,
