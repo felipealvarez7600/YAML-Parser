@@ -25,9 +25,11 @@
     city: Castelo Branco
   from: Covilhã
   grades:
-    - subject: CD
+    -
+      subject: CD
       classification: 10
-    - subject: TMD
+    -
+      subject: TMD
       classification: 19
 -
   name: Carlos Serra
@@ -38,5 +40,6 @@
     city: Lisbon
   from: Alameda
   grades:
-    - subject: LS
+    -
+      subject: LS
       classification: 16
