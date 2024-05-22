@@ -4,7 +4,7 @@ address:
   street: Rua Carlos Mardel
   nr: 23
   city: Lisbon
-from: Alameda
+city of birth: Alameda
 grades:
   -
     subject: LS

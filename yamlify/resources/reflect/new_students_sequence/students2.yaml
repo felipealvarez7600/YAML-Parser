@@ -13,10 +13,10 @@
   grades:
     -
       subject: LAE
-      classification: 18
+      classification: 12
     -
       subject: PDM
       classification: 15
     -
       subject: PC
-      classification: 19
+      classification: 16

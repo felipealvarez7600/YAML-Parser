@@ -7,11 +7,14 @@
     nr: 78
     city: Lisbon
   grades:
-    - subject: LAE
+    -
+      subject: LAE
       classification: 18
-    - subject: PDM
+    -
+      subject: PDM
       classification: 15
-    - subject: PC
+    -
+      subject: PC
       classification: 19
   birth:
     year: 2004
@@ -21,7 +24,3 @@
     age: 16
     height: 162
     asFinished: false
--
-  name: Jose Carioca
-  nr: 1214398
-  from: Tamega

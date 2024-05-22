@@ -412,13 +412,13 @@ class YamlFolderParserTest {
         val grades4 = st4.grades.iterator()
         val g41 = grades4.next()
         kotlin.test.assertEquals("LAE", g41.subject)
-        kotlin.test.assertEquals(18, g41.classification)
+        kotlin.test.assertEquals(12, g41.classification)
         val g42 = grades4.next()
         kotlin.test.assertEquals("PDM", g42.subject)
         kotlin.test.assertEquals(15, g42.classification)
         val g43 = grades4.next()
         kotlin.test.assertEquals("PC", g43.subject)
-        kotlin.test.assertEquals(19, g43.classification)
+        kotlin.test.assertEquals(16, g43.classification)
         kotlin.test.assertFalse { grades1.hasNext() }
     }
 
