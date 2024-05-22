@@ -22,7 +22,7 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
     final override fun parseObject(yaml: Reader): T {
         val yamlLinesList = yaml.readLines()
         require(yamlLinesList.isNotEmpty()) { "Empty yaml" }
-        val iteration = iterateOverObject(yamlLinesList, -1, 0)
+        val iteration = iterateOverObject(yamlLinesList, 0, 0)
         return newInstance(iteration.first)
     }
 
@@ -47,12 +47,16 @@ abstract class AbstractYamlParser<T : Any>(private val type: KClass<T>) : YamlPa
             // Check if the value is blank, if it isn't, it means that it's a normal pair to add to the map.
             if(value.isNotBlank()){
                 map[key] = value
+                if(index == yamlLinesList.size) {
+                    index++
+                    break
+                }
             } else {
                 // Check if the value is a list or an object.
                 if(!yamlLinesList[index].contains("-")){
                     val currentIndent = yamlLinesList[index].indexOfFirst { it != ' ' }
                     val newValue = iterateOverObject(yamlLinesList, currentIndent, index)
-                    index = newValue.second - 1
+                    index =  newValue.second - 1
                     map[key] = newValue.first
                 } else {
 
