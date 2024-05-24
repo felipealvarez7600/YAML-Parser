@@ -6,7 +6,6 @@ import pt.isel.test.Student
 import pt.isel.test.StudentSimple
 import pt.isel.test.StudentWithAddress
 import java.io.File
-import kotlin.reflect.KClass
 
 class YamlFolderParserTest {
     @Test
@@ -198,6 +197,134 @@ class YamlFolderParserTest {
 
         val objects = folderParser.parseFolderLazy(folderPath).iterator()
         assertCojStudentsWithAnnotation(objects)
+    }
+    private val yamlContent = """
+        name: Maria Candida
+        nr: 873435
+        address:
+          street: Rua Rosa
+          nr: 78
+          city: Lisbon
+        from: Oleiros
+    """.trimIndent()
+
+    private val yamlContentSeq = """
+    -
+        name: Maria Candida
+        nr: 873435
+        address:
+            street: Rua Rosa
+            nr: 78
+            city: Lisbon
+        from: Oleiros
+    -
+        name: Jose Carioca
+        nr: 1214398
+        from: Tamega
+    """.trimIndent()
+
+    private val updatedYamlContent = """
+        name: Updated Name
+        nr: 873436
+        address:
+          street: Rua Updated
+          nr: 79
+          city: Updated City
+        from: Updated Place
+    """.trimIndent()
+
+    private val updatedYamlContentSeq = """
+    -
+        name: Updated Name
+        nr: 873436
+        address:
+            street: Rua Updated
+            nr: 78
+            city: Lisbon
+        from: Updated Place
+    -
+        name: Jose Up
+        nr: 1214399
+        from: Tamegaço
+    """.trimIndent()
+
+    private fun prepareDirectory(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val file1 = File(folder, "student1.yaml")
+        file1.writeText(yamlContent)
+    }
+
+    private fun prepareDirectorySeq(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val file1 = File(folder, "student1.yaml")
+        file1.writeText(yamlContentSeq)
+    }
+
+    @Test
+    fun testParseFolderRefEagerAlter() {
+        val folderPath = "resources/reflect/students_alter"
+        prepareDirectory(folderPath)
+
+        val parser = YamlParserReflect.yamlParser(Student::class)
+        val folderParser = YamlFolderParser(parser)
+
+        val objects = folderParser.parseFolderEager(folderPath).iterator()
+
+        File(folderPath, "student1.yaml").writeText(updatedYamlContent)
+        assertStudents(objects)
+    }
+
+    @Test
+    fun testParseFolderRefLazyAlter() {
+        val folderPath = "resources/reflect/students_sequence_alter"
+        prepareDirectorySeq(folderPath)
+
+        val parser = YamlParserReflect.yamlParser(Student::class)
+        val folderParser = YamlFolderParser(parser)
+
+        val objects = folderParser.parseFolderLazy(folderPath).iterator()
+
+        File(folderPath, "student1.yaml").writeText(updatedYamlContentSeq)
+
+        val st1 = objects.next()
+        kotlin.test.assertNotEquals("Maria Candida", st1.name)
+        kotlin.test.assertNotEquals(873435, st1.nr)
+        kotlin.test.assertNotEquals("Rua Rosa", st1.address?.street)
+        kotlin.test.assertEquals(78, st1.address?.nr)
+        kotlin.test.assertEquals("Lisbon", st1.address?.city)
+        kotlin.test.assertNotEquals("Oleiros", st1.from)
+        val st2 = objects.next()
+        kotlin.test.assertNotEquals("Jose Carioca", st2.name)
+        kotlin.test.assertNotEquals(1214398, st2.nr)
+        kotlin.test.assertNotEquals("Tamega", st2.from)
+        val st3 = objects.next()
+        kotlin.test.assertEquals("Pedro Ferreira", st3.name)
+        kotlin.test.assertEquals(238992, st3.nr)
+        kotlin.test.assertEquals("Covilhã", st3.from)
+        val st4 = objects.next()
+        kotlin.test.assertEquals("Carlos Serra", st4.name)
+        kotlin.test.assertEquals(203941, st4.nr)
+        kotlin.test.assertEquals("Rua Actor Vale", st4.address?.street)
+        kotlin.test.assertEquals(14, st4.address?.nr)
+        kotlin.test.assertEquals("Lisbon", st4.address?.city)
+        kotlin.test.assertEquals("Alameda", st4.from)
+        val grades4 = st4.grades.iterator()
+        val g1 = grades4.next()
+        kotlin.test.assertEquals("LAE", g1.subject)
+        kotlin.test.assertEquals(18, g1.classification)
+        val g2 = grades4.next()
+        kotlin.test.assertEquals("PDM", g2.subject)
+        kotlin.test.assertEquals(15, g2.classification)
+        val g3 = grades4.next()
+        kotlin.test.assertEquals("PC", g3.subject)
+        kotlin.test.assertEquals(19, g3.classification)
+        kotlin.test.assertFalse { grades4.hasNext() }
+        val st5 = objects.next()
+        kotlin.test.assertEquals("Paula Martins", st5.name)
+        kotlin.test.assertEquals(952304, st5.nr)
+        kotlin.test.assertEquals("Amadora", st5.from)
     }
 
     private fun assertStudents(seq: Iterator<Student>) {
