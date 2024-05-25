@@ -1,22 +1,25 @@
-name: Pedro Ferreira
-nr: 238992
+name: Pedro Up
+nr: 238993
+city of birth: City
 address:
-  street: Rua do Armiense
-  nr: 16
-  city: Castelo Branco
-city of birth: Covilhã
+  street: Rua Updated
+  nr: 79
+  city: Updated City
 grades:
   -
-    subject: CD
+    subject: PG
     classification: 10
   -
-    subject: TMD
-    classification: 19
+    subject: RC
+    classification: 11
+  -
+    subject: DAW
+    classification: 12
 birth:
-  year: 1997
+  year: 2003
   month: 02
-  day: 02
+  day: 01
 details:
-  age: 23
-  height: 178
+  age: 17
+  height: 168
   asFinished: true
