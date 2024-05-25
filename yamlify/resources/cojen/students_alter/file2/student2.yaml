@@ -1,0 +1,25 @@
+name: Jose Carioca
+nr: 1214398
+address:
+  street: Rua Doutor Barroso
+  nr: 13
+  city: Vila Real
+city of birth: Tamega
+grades:
+  -
+    subject: AED
+    classification: 13
+  -
+    subject: PG
+    classification: 14
+  -
+    subject: ALGA
+    classification: 17
+birth:
+  year: 2002
+  month: 10
+  day: 20
+details:
+  age: 17
+  height: 175
+  asFinished: false

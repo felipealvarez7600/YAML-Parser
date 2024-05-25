@@ -1,0 +1,22 @@
+name: Pedro Ferreira
+nr: 238992
+address:
+  street: Rua do Armiense
+  nr: 16
+  city: Castelo Branco
+city of birth: Covilhã
+grades:
+  -
+    subject: CD
+    classification: 10
+  -
+    subject: TMD
+    classification: 19
+birth:
+  year: 1997
+  month: 02
+  day: 02
+details:
+  age: 23
+  height: 178
+  asFinished: true
