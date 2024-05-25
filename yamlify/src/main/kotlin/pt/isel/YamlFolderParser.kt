@@ -6,7 +6,7 @@ class YamlFolderParser<T : Any>(private val parser: AbstractYamlParser<T>) {
     fun parseFolderEager(path: String): List<T> {
         val folder = File(path)
         require(folder.isDirectory) { "Path is not a directory: $path" }
-        return folder.listFiles()?.mapNotNull { file ->
+        return folder.listFiles()?.sortedWith(compareBy { it.name.lowercase() })?.mapNotNull { file ->
             if (file.isFile && file.extension == "yaml") {
                 parser.parseObject(file.reader())
             } else {
@@ -19,7 +19,7 @@ class YamlFolderParser<T : Any>(private val parser: AbstractYamlParser<T>) {
         val folder = File(path)
         require(folder.isDirectory) { "Path is not a directory: $path" }
         return sequence {
-            folder.listFiles()?.forEach { file ->
+            folder.listFiles()?.sortedWith(compareBy { it.name.lowercase() })?.forEach { file ->
                 if (file.isFile && file.extension == "yaml") {
                     val elements = parser.parseSequence(file.reader())
                     for (element in elements) {
