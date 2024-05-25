@@ -1,0 +1,25 @@
+name: Updated1 Name
+nr: 873436
+city of birth: Updated1 Place
+address:
+  street: Rua Updated1
+  nr: 79
+  city: Updated1 City
+grades:
+  -
+    subject: PG
+    classification: 10
+  -
+    subject: RC
+    classification: 11
+  -
+    subject: DAW
+    classification: 12
+birth:
+  year: 2003
+  month: 02
+  day: 01
+details:
+  age: 17
+  height: 168
+  asFinished: true

@@ -1,10 +1,10 @@
-name: Updated Name
+name: Updated2 Name
 nr: 873436
-city of birth: Updated Place
+city of birth: Updated2 Place
 address:
-  street: Rua Updated
+  street: Rua Updated2
   nr: 79
-  city: Updated City
+  city: Updated2 City
 grades:
   -
     subject: PG

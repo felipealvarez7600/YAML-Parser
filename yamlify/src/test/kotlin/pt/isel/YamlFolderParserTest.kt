@@ -203,7 +203,7 @@ class YamlFolderParserTest {
         val objects = folderParser.parseFolderLazy(folderPath).iterator()
         assertCojStudentsWithAnnotation(objects)
     }
-    private val refYamlContent = """
+    private val refYamlContent1 = """
         name: Maria Candida
         nr: 873435
         address:
@@ -213,7 +213,7 @@ class YamlFolderParserTest {
         from: Oleiros
     """.trimIndent()
 
-    private val cojYamlContent = """
+    private val cojYamlContent1 = """
         name: Maria Candida
         nr: 873435
         city of birth: Oleiros
@@ -241,24 +241,175 @@ class YamlFolderParserTest {
           asFinished: false
     """.trimIndent()
 
-    private val refUpdatedYamlContent = """
-        name: Updated Name
-        nr: 873436
-        address:
-          street: Rua Updated
-          nr: 79
-          city: Updated City
-        from: Updated Place
+    private val refYamlContent2 = """
+        name: Jose Carioca
+        nr: 1214398
+        from: Tamega
     """.trimIndent()
 
-    private val cojUpdatedYamlContent = """
-        name: Updated Name
-        nr: 873436
-        city of birth: Updated Place
+    private val cojYamlContent2 = """
+        name: Jose Carioca
+        nr: 1214398
         address:
-          street: Rua Updated
+          street: Rua Doutor Barroso
+          nr: 13
+          city: Vila Real
+        city of birth: Tamega
+        grades:
+          -
+            subject: AED
+            classification: 13
+          -
+            subject: PG
+            classification: 14
+          -
+            subject: ALGA
+            classification: 17
+        birth:
+          year: 2002
+          month: 10
+          day: 20
+        details:
+          age: 17
+          height: 175
+          asFinished: false
+    """.trimIndent()
+
+    private val refYamlContent3 = """
+        name: Pedro Ferreira
+        nr: 238992
+        from: Covilhã
+    """.trimIndent()
+
+    private val cojYamlContent3 = """
+        name: Pedro Ferreira
+        nr: 238992
+        address:
+          street: Rua do Armiense
+          nr: 16
+          city: Castelo Branco
+        city of birth: Covilhã
+        grades:
+          -
+            subject: CD
+            classification: 10
+          -
+            subject: TMD
+            classification: 19
+        birth:
+          year: 1997
+          month: 02
+          day: 02
+        details:
+          age: 23
+          height: 178
+          asFinished: true
+    """.trimIndent()
+
+    private val refYamlContent4 = """
+        name: Carlos Serra
+        nr: 203941
+        address:
+          street: Rua Actor Vale
+          nr: 14
+          city: Lisbon
+        from: Alameda
+        grades:
+          -
+            subject: LAE
+            classification: 18
+          -
+            subject: PDM
+            classification: 15
+          -
+            subject: PC
+            classification: 19
+    """.trimIndent()
+
+    private val cojYamlContent4 = """
+        name: Carlos Serra
+        nr: 203941
+        address:
+          street: Rua Carlos Mardel
+          nr: 23
+          city: Lisbon
+        city of birth: Alameda
+        grades:
+          -
+            subject: LS
+            classification: 16
+        birth:
+          year: 2003
+          month: 06
+          day: 09
+        details:
+          age: 16
+          height: 168
+          asFinished: false
+    """.trimIndent()
+
+    private val refYamlContent5 = """
+        name: Nuno Barros
+        nr: 233213
+        address:
+          street: Rua Mandarin
+          nr: 20
+          city: Porto
+        city of birth: Setubal
+    """.trimIndent()
+
+    private val cojYamlContent5 = """
+        name: Nuno Barros
+        nr: 233213
+        address:
+          street: Rua Mandarin
+          nr: 20
+          city: Porto
+        city of birth: Setubal
+        grades:
+          -
+            subject: PC
+            classification: 2
+        birth:
+          year: 2001
+          month: 02
+          day: 03
+        details:
+          age: 12
+          height: 200
+          asFinished: true
+    """.trimIndent()
+
+
+
+    private val refUpdatedYamlContent1 = """
+        name: Updated1 Name
+        nr: 873436
+        address:
+          street: Rua Updated1
           nr: 79
-          city: Updated City
+          city: Updated1 City
+        from: Updated1 Place
+    """.trimIndent()
+
+    private val refUpdatedYamlContent2 = """
+        name: Updated2 Name
+        nr: 873436
+        address:
+          street: Rua Updated2
+          nr: 79
+          city: Updated2 City
+        from: Updated2 Place
+    """.trimIndent()
+
+    private val cojUpdatedYamlContent1 = """
+        name: Updated1 Name
+        nr: 873436
+        city of birth: Updated1 Place
+        address:
+          street: Rua Updated1
+          nr: 79
+          city: Updated1 City
         grades:
           -
             subject: PG
@@ -279,6 +430,35 @@ class YamlFolderParserTest {
           asFinished: true
     """.trimIndent()
 
+    private val cojUpdatedYamlContent2 = """
+        name: Updated2 Name
+        nr: 873436
+        city of birth: Updated2 Place
+        address:
+          street: Rua Updated2
+          nr: 79
+          city: Updated2 City
+        grades:
+          -
+            subject: PG
+            classification: 10
+          -
+            subject: RC
+            classification: 11
+          -
+            subject: DAW
+            classification: 12
+        birth:
+          year: 2003
+          month: 02
+          day: 01
+        details:
+          age: 17
+          height: 168
+          asFinished: true
+    """.trimIndent()
+
+    // Should be deleted
     private fun <T> combineIterators(vararg iterators: Iterator<T>): Iterator<T> {
         return object : Iterator<T> {
             private var currentIteratorIndex = 0
@@ -299,31 +479,79 @@ class YamlFolderParserTest {
             }
         }
     }
-    private fun refPrepareDirectory(dirPath: String) {
-        val folder = File(dirPath)
+
+    private fun refPrepareFiles() {
+        val folder = File("resources/reflect/students_alter2")
         folder.mkdirs()
         val file1 = File(folder, "student1.yaml")
-        file1.writeText(refYamlContent)
+        file1.writeText(refYamlContent1)
+        val file2 = File(folder, "student2.yaml")
+        file2.writeText(refYamlContent2)
+        val file3 = File(folder, "student3.yaml")
+        file3.writeText(refYamlContent3)
+        val file4 = File(folder, "student4.yaml")
+        file4.writeText(refYamlContent4)
+        val file5 = File(folder, "student5.yaml")
+        file5.writeText(refYamlContent5)
     }
-    private fun cojPrepareDirectory(dirPath: String) {
-        val folder = File(dirPath)
+
+    private fun cojPrepareFiles() {
+        val folder = File("resources/reflect/students_alter2")
         folder.mkdirs()
         val file1 = File(folder, "student1.yaml")
-        file1.writeText(cojYamlContent)
+        file1.writeText(refYamlContent1)
+        val file2 = File(folder, "student2.yaml")
+        file2.writeText(refYamlContent2)
+        val file3 = File(folder, "student3.yaml")
+        file3.writeText(refYamlContent3)
+        val file4 = File(folder, "student4.yaml")
+        file4.writeText(refYamlContent4)
+        val file5 = File(folder, "student5.yaml")
+        file5.writeText(refYamlContent5)
+    }
+
+    // Should be deleted
+    private fun refPrepareDirectory1(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val directory1 = File(folder, "student1.yaml")
+        directory1.writeText(refYamlContent1)
+    }
+
+    // Should be deleted
+    private fun cojPrepareDirectory1(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val directory1 = File(folder, "student1.yaml")
+        directory1.writeText(cojYamlContent1)
+    }
+
+    private fun refPrepareDirectory3(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val directory3 = File(folder, "student5.yaml")
+        directory3.writeText(refYamlContent5)
+    }
+
+    private fun cojPrepareDirectory3(dirPath: String) {
+        val folder = File(dirPath)
+        folder.mkdirs()
+        val directory3 = File(folder, "student5.yaml")
+        directory3.writeText(cojYamlContent5)
     }
 
     @Test
     fun testParseFolderRefEagerAlter() {
-        val fp1 = "resources/reflect/students_alter/file1"
-        val fp2 = "resources/reflect/students_alter/file2"
-        refPrepareDirectory(fp1)
+        val fp1 = "resources/reflect/students_alter1/directory1"
+        val fp2 = "resources/reflect/students_alter1/directory2"
+        refPrepareDirectory1(fp1)
 
         val parser = YamlParserReflect.yamlParser(Student::class)
         val folderParser = YamlFolderParser(parser)
 
         val obj1 = folderParser.parseFolderEager(fp1).iterator()
 
-        File(fp1, "student1.yaml").writeText(refUpdatedYamlContent)
+        File(fp1, "student1.yaml").writeText(refUpdatedYamlContent1)
 
         val obj2 = folderParser.parseFolderEager(fp2).iterator()
         assertStudents(combineIterators(obj1, obj2))
@@ -331,16 +559,16 @@ class YamlFolderParserTest {
 
     @Test
     fun testParseFolderRefLazyAlter() {
-        val fp1 = "resources/reflect/students_alter/file1"
-        val fp2 = "resources/reflect/students_alter/file2"
-        refPrepareDirectory(fp1)
+        val fp1 = "resources/reflect/students_alter1/directory1"
+        val fp2 = "resources/reflect/students_alter1/directory2"
+        refPrepareDirectory1(fp1)
 
         val parser = YamlParserReflect.yamlParser(Student::class)
         val folderParser = YamlFolderParser(parser)
 
         val obj1 = folderParser.parseFolderLazy(fp1).iterator()
 
-        File(fp1, "student1.yaml").writeText(refUpdatedYamlContent)
+        File(fp1, "student1.yaml").writeText(refUpdatedYamlContent1)
 
         val obj2 = folderParser.parseFolderEager(fp2).iterator()
         val objects = combineIterators(obj1, obj2)
@@ -385,35 +613,40 @@ class YamlFolderParserTest {
     }
     @Test
     fun testParseFolderCojEagerAlter() {
-        val fp1 = "resources/cojen/students_alter/file1"
-        val fp2 = "resources/cojen/students_alter/file2"
-        cojPrepareDirectory(fp1)
+        val fp1 = "resources/cojen/students_alter1/directory1"
+        val fp2 = "resources/cojen/students_alter1/directory2"
+        cojPrepareDirectory1(fp1)
 
         val parser = YamlParserCojen.yamlParser(NewStudent::class, 7)
         val folderParser = YamlFolderParser(parser)
 
         val obj1 = folderParser.parseFolderEager(fp1).iterator()
 
-        File(fp1, "student1.yaml").writeText(cojUpdatedYamlContent)
+        File(fp1, "student1.yaml").writeText(cojUpdatedYamlContent1)
 
         val obj2 = folderParser.parseFolderEager(fp2).iterator()
+
+//        File(fp1, "student5.yaml").writeText(cojUpdatedYamlContent2)
+
         assertCojStudentsWithAnnotation(combineIterators(obj1, obj2))
     }
 
     @Test
     fun testParseFolderCojLazyAlter() {
-        val fp1 = "resources/cojen/students_alter/file1"
-        val fp2 = "resources/cojen/students_alter/file2"
-        refPrepareDirectory(fp1)
+        val fp1 = "resources/cojen/students_alter1/directory1"
+        val fp2 = "resources/cojen/students_alter1/directory2"
+        refPrepareDirectory1(fp1)
+        refPrepareDirectory1(fp2)
 
         val parser = YamlParserCojen.yamlParser(NewStudent::class, 7)
         val folderParser = YamlFolderParser(parser)
 
         val obj1 = folderParser.parseFolderLazy(fp1).iterator()
 
-        File(fp1, "student1.yaml").writeText(cojUpdatedYamlContent)
+        File(fp1, "student1.yaml").writeText(cojUpdatedYamlContent1)
 
-        val obj2 = folderParser.parseFolderEager(fp2).iterator()
+        val obj2 = folderParser.parseFolderLazy(fp2).iterator()
+
         val objects = combineIterators(obj1, obj2)
 
         val st1 = objects.next()
@@ -487,6 +720,115 @@ class YamlFolderParserTest {
         kotlin.test.assertFalse { grades4.hasNext() }
     }
 
+    @Test
+    fun testParseFolderCojLazyAlterBetweenIterations() {
+        val fp = "resources/cojen/students_alter2"
+        cojPrepareFiles()
+
+        val parser = YamlParserCojen.yamlParser(NewStudent::class, 7)
+        val folderParser = YamlFolderParser(parser)
+
+        val obj = folderParser.parseFolderLazy(fp).iterator()
+
+        File(fp, "student1.yaml").writeText(cojUpdatedYamlContent1)
+
+        val st1 = obj.next()
+        kotlin.test.assertEquals("Updated1 Name", st1.name)
+        kotlin.test.assertEquals(873436, st1.nr)
+        kotlin.test.assertEquals("Rua Updated1", st1.address?.street)
+        kotlin.test.assertEquals(79, st1.address?.nr)
+        kotlin.test.assertEquals("Updated1 City", st1.address?.city)
+        kotlin.test.assertEquals("Updated1 Place", st1.from)
+        val grades1 = st1.grades.iterator()
+        val g11 = grades1.next()
+        kotlin.test.assertEquals("PG", g11.subject)
+        kotlin.test.assertEquals(10, g11.classification)
+        val g12 = grades1.next()
+        kotlin.test.assertEquals("RC", g12.subject)
+        kotlin.test.assertEquals(11, g12.classification)
+        val g13 = grades1.next()
+        kotlin.test.assertEquals("DAW", g13.subject)
+        kotlin.test.assertEquals(12, g13.classification)
+        kotlin.test.assertFalse { grades1.hasNext() }
+        kotlin.test.assertEquals(1, st1.birth?.dayOfMonth)
+        kotlin.test.assertEquals(2, st1.birth?.month?.value)
+        kotlin.test.assertEquals(2003, st1.birth?.year)
+        kotlin.test.assertEquals(17, st1.details?.age)
+        kotlin.test.assertEquals(168, st1.details?.height)
+        kotlin.test.assertEquals(true, st1.details?.asFinished)
+        File(fp, "student2.yaml").writeText(cojUpdatedYamlContent2)
+        val st2 = obj.next()
+        kotlin.test.assertEquals("Jose Carioca", st2.name)
+        kotlin.test.assertEquals(1214398, st2.nr)
+        kotlin.test.assertEquals("Rua Doutor Barroso", st2.address?.street)
+        kotlin.test.assertEquals(13, st2.address?.nr)
+        kotlin.test.assertEquals("Vila Real", st2.address?.city)
+        kotlin.test.assertEquals("Tamega", st2.from)
+        val grades2 = st2.grades.iterator()
+        val g21 = grades2.next()
+        kotlin.test.assertEquals("AED", g21.subject)
+        kotlin.test.assertEquals(13, g21.classification)
+        val g22 = grades2.next()
+        kotlin.test.assertEquals("PG", g22.subject)
+        kotlin.test.assertEquals(14, g22.classification)
+        val g23 = grades2.next()
+        kotlin.test.assertEquals("ALGA", g23.subject)
+        kotlin.test.assertEquals(17, g23.classification)
+        kotlin.test.assertFalse { grades2.hasNext() }
+        val st3 = obj.next()
+        kotlin.test.assertEquals("Pedro Ferreira", st3.name)
+        kotlin.test.assertEquals(238992, st3.nr)
+        kotlin.test.assertEquals("Rua do Armiense", st3.address?.street)
+        kotlin.test.assertEquals(16, st3.address?.nr)
+        kotlin.test.assertEquals("Castelo Branco", st3.address?.city)
+        kotlin.test.assertEquals("Covilhã", st3.from)
+        val grades3 = st3.grades.iterator()
+        val g31 = grades3.next()
+        kotlin.test.assertEquals("CD", g31.subject)
+        kotlin.test.assertEquals(10, g31.classification)
+        val g32 = grades3.next()
+        kotlin.test.assertEquals("TMD", g32.subject)
+        kotlin.test.assertEquals(19, g32.classification)
+        kotlin.test.assertFalse { grades3.hasNext() }
+        val st4 = obj.next()
+        kotlin.test.assertEquals("Carlos Serra", st4.name)
+        kotlin.test.assertEquals(203941, st4.nr)
+        kotlin.test.assertEquals("Rua Carlos Mardel", st4.address?.street)
+        kotlin.test.assertEquals(23, st4.address?.nr)
+        kotlin.test.assertEquals("Lisbon", st4.address?.city)
+        kotlin.test.assertEquals("Alameda", st4.from)
+        val grades4 = st4.grades.iterator()
+        val g41 = grades4.next()
+        kotlin.test.assertEquals("LS", g41.subject)
+        kotlin.test.assertEquals(16, g41.classification)
+        kotlin.test.assertFalse { grades4.hasNext() }
+        File(fp, "student5.yaml").writeText(cojUpdatedYamlContent2)
+        val st5 = obj.next()
+        kotlin.test.assertEquals("Updated2 Name", st5.name)
+        kotlin.test.assertEquals(873436, st5.nr)
+        kotlin.test.assertEquals("Rua Updated2", st5.address?.street)
+        kotlin.test.assertEquals(79, st5.address?.nr)
+        kotlin.test.assertEquals("Updated2 City", st5.address?.city)
+        kotlin.test.assertEquals("Updated2 Place", st5.from)
+        val grades5 = st5.grades.iterator()
+        val g51 = grades5.next()
+        kotlin.test.assertEquals("PG", g51.subject)
+        kotlin.test.assertEquals(10, g51.classification)
+        val g52 = grades5.next()
+        kotlin.test.assertEquals("RC", g52.subject)
+        kotlin.test.assertEquals(11, g52.classification)
+        val g53 = grades5.next()
+        kotlin.test.assertEquals("DAW", g53.subject)
+        kotlin.test.assertEquals(12, g53.classification)
+        kotlin.test.assertFalse { grades5.hasNext() }
+        kotlin.test.assertEquals(1, st5.birth?.dayOfMonth)
+        kotlin.test.assertEquals(2, st5.birth?.month?.value)
+        kotlin.test.assertEquals(2003, st5.birth?.year)
+        kotlin.test.assertEquals(17, st5.details?.age)
+        kotlin.test.assertEquals(168, st5.details?.height)
+        kotlin.test.assertEquals(true, st5.details?.asFinished)
+    }
+
     private fun assertStudents(seq: Iterator<Student>) {
         val st1 = seq.next()
         kotlin.test.assertEquals("Maria Candida", st1.name)
@@ -495,6 +837,7 @@ class YamlFolderParserTest {
         kotlin.test.assertEquals(78, st1.address?.nr)
         kotlin.test.assertEquals("Lisbon", st1.address?.city)
         kotlin.test.assertEquals("Oleiros", st1.from)
+        // File(fp1, "student2.yaml").writeText(refUpdatedYamlContent)
         val st2 = seq.next()
         kotlin.test.assertEquals("Jose Carioca", st2.name)
         kotlin.test.assertEquals(1214398, st2.nr)
