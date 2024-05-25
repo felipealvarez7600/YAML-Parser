@@ -19,14 +19,13 @@ class YamlFolderParser<T : Any>(private val parser: AbstractYamlParser<T>) {
         val folder = File(path)
         require(folder.isDirectory) { "Path is not a directory: $path" }
         return sequence {
-            folder.listFiles()?.sortedWith(compareBy { it.name.lowercase() })?.forEach { file ->
+            folder.listFiles()?.sortedWith(compareBy { it.name.lowercase() })?.mapNotNull { file ->
                 if (file.isFile && file.extension == "yaml") {
-                    val elements = parser.parseSequence(file.reader())
-                    for (element in elements) {
-                        yield(element)
-                    }
+                    yield(parser.parseObject(file.reader()))
+                } else {
+                    null
                 }
-            }
+            } ?: throw Exception("No Files Found")
         }
     }
 }
